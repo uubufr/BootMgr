@@ -33,25 +33,25 @@ function Next_Id() {
 # Args:
 #   $1: grub.cfg path
 function Set_Kernels() {
-    VMLAST=""
-    VMPREV=""
-    VMRESCUE=""
+    KLAST=""
+    KPREV=""
+    KRESCUE=""
     
     for KERNEL in $(ls -1tc /boot/vmlinuz-* | grep -v rescue | head -3); do
-        [ "$VMLAST" ] && [ ! "$VMPREV" ] && VMPREV=$(basename $KERNEL)
-        [ "$VMLAST" ] || VMLAST=$(basename $KERNEL)
+        [ "$KLAST" ] && [ ! "$KPREV" ] && KPREV=$(basename $KERNEL)
+        [ "$KLAST" ] || KLAST=$(basename $KERNEL)
     done
     
-    VMRESCUE=$(ls -1tc /boot/vmlinuz-* | grep rescue)
+    KRESCUE=$(basename $(ls -1tc /boot/vmlinuz-* | grep rescue))
     echo "last"
     sed -i -e "s/%%ID%%/$(Next_Id)/" $1
-    sed -i -e "s/%%VMLAST%%/$VMLAST/g" $1
+    sed -i -e "s/%%KLAST%%/$KLAST/g" $1
     sed -i -e "s/%%ID%%/$(Next_Id)/" $1
     echo "prev"
-    sed -i -e "s/%%VMPREV%%/$VMPREV/g" $1
+    sed -i -e "s/%%KPREV%%/$KPREV/g" $1
     sed -i -e "s/%%ID%%/$(Next_Id)/" $1
     echo "rescue"
-    sed -i -e "s/%%VMRESCUE%%/$VMRESCUE/g" $1
+    sed -i -e "s/%%KRESCUE%%/$KRESCUE/g" $1
 }
 
 # Function: Get_OS
