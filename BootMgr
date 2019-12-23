@@ -83,14 +83,14 @@ function Set_Root_User() {
 # Args:
 #   $1: grub.cfg path
 function Set_User() {
-    if [ ! "$USER" ]; then
+    if [ ! "$SUPERUSER" ]; then
         echo "Enter UserName"; read NEWUSER;
         echo "Enter password for $NEWUSER user, 2 times:"
-        USER=$(grub2-mkpasswd-pbkdf2 -l 512 -s 2048 -c 2048)
-        USER=${USER##* }
+        SUPERUSER=$(grub2-mkpasswd-pbkdf2 -l 512 -s 2048 -c 2048)
+        SUPERUSER=${SUPERUSER##* }
     fi
-    sed -i "s/%%USER%%/password_pbkdf2 $NEWUSER $USER/g" $1
-    sed -i -e "s/^USER=*/USER=\"password_pbkdf2 $NEWUSER $USER\"/" /etc/BootMgr/BootMgr_.conf
+    sed -i "s/%%USER%%/password_pbkdf2 $NEWUSER $SUPERUSER/g" $1
+    sed -i -e "s/^USER=*/USER=\"password_pbkdf2 $NEWUSER $SUPERUSER\"/" /etc/BootMgr/BootMgr_.conf
 }
 
 function Is_Installed() {
