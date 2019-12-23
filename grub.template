@@ -55,14 +55,14 @@ export KRESCUE
 
 if [ "$KLAST" ]; then
  menuentry "Fedora $KLAST" --class default --class %%OS%% --class gnu-linux --unrestricted --id=%%ID%% {
-  linuxefi /vmlinuz-$KLAST root=$HDUUID $OPTIONS rd.driver.blacklist=nouveau
+  linuxefi /$KLAST root=$HDUUID $OPTIONS rd.driver.blacklist=nouveau
   initrdefi /initramfs-$KLAST.img
  }
 fi
 
 if [ "$KPREV" ]; then
  menuentry "Fedora $KPREV (previous kernel)" --class latest --class %%OS%% --class gnu-linux --unrestricted --id=%%ID%% {
-  linuxefi /vmlinuz-$KPREV root=$HDUUID $OPTIONS
+  linuxefi /$KPREV root=$HDUUID $OPTIONS
   initrdefi /initramfs-$KPREV.img
  }
 fi
@@ -71,21 +71,21 @@ submenu "Accès Administratif (restreint)" --class recovery --users %%SUPERUSER%
 
  if [ "$KLAST" ]; then
   menuentry "Fedora $KLAST (recovery mode)" --class default --class %%OS%% --class gnu-linux --unrestricted --id=%%ID%% {
-   linuxefi /vmlinuz-$KLAST root=$HDUUID $OPTRESCUE
+   linuxefi /$KLAST root=$HDUUID $OPTRESCUE
    initrdefi /initramfs-$KLAST.img
   }
  fi
 
  if [ "$KPREV" ]; then
   menuentry "Fedora $KPREV (testing, recovery mode)" --class latest --class %%OS%% --class gnu-linux --unrestricted --id=%%ID%% {
-   linuxefi /vmlinuz-$KPREV root=$HDUUID $OPTRESCUE
+   linuxefi /$KPREV root=$HDUUID $OPTRESCUE
    initrdefi /initramfs-$KPREV.img
   }
  fi
 
  if [ "$KRESCUE" ]; then
   menuentry "Fedora $KRESCUE (legacy, recovery mode)" --class old --class %%OS%% --class gnu-linux --users unrestricted --id=%%ID%% {
-   linuxefi /vmlinuz-$KRESCUE root=$HDUUID $OPTRESCUE
+   linuxefi /$KRESCUE root=$HDUUID $OPTRESCUE
    initrdefi /initramfs-$KRESCUE.img
   }
  fi
