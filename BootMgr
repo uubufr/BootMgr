@@ -1,0 +1,153 @@
+#! /bin/bash
+#
+# script name: BootMgr
+# autor: Sylvain Girod ( uubu at gmx dot fr )
+# version: 0.04
+# description: script for generate a simple Grub2 cfg on UEFI system
+#               Including:
+#                   users password
+#                   Windows dual boot
+#                   Module signature
+#                   custom theme color and background
+# Warning: only tested on Fedora!
+#
+# Functions:
+# Next_Id: ensure each entry have a new, unique id
+# Set_Kernels: Get Kernel list and update grub.cfg
+# Get_OS: get linux distrib name
+# Set_Root_User: Set Root password
+# Set_User: Set User password
+
+
+
+# Function: Next_Id
+# Description: ensure each entry have a new, unique id
+# Args: None
+function Next_Id() {
+    CurID=$((CurID + 1))
+    echo $CurID
+}
+
+# Function: Set_Kernels
+# Description: Get Kernel list and update grub.cfg
+# Args:
+#   $1: grub.cfg path
+function Set_Kernels() {
+    VMLAST=""
+    VMPREV=""
+    VMRESCUE=""
+    
+    for KERNEL in $(ls -1tc /boot/vmlinuz-* | grep -v rescue | head -3); do
+        [ "$VMLAST" ] && [ ! "$VMPREV" ] && VMPREV=$KERNEL
+        [ "$VMLAST" ] || VMLAST=$KERNEL
+    done
+    
+    VMRESCUE=$(ls -1tc /boot/vmlinuz-* | grep rescue)
+    sed -i -e "s/%%VMLAST%%/$VMLAST/g" $1
+    sed -i -e "s/%%ID%%/$(New_Id)/" $1
+    sed -i -e "s/%%VMPREV%%/$VMPREV/g" $1
+    sed -i -e "s/%%ID%%/$(New_Id)/" $1
+    sed -i -e "s/%%VMRESCUE%%/$VMRESCUE/g" $1
+    sed -i -e "s/%%ID%%/$(New_Id)/" $1
+}
+
+# Function: Get_OS
+# Description: get linux distrib name
+# Args:
+#   $1: grub.cfg path
+function Get_OS() {
+    [ -r /etc/ubuntu-release ] && OS=ubuntu
+    [ -r /etc/debian-release ] && OS=debian
+    [ -r /etc/centos-release ] && OS=centos
+    [ -r /etc/fedora-release ] && OS=fedora
+    
+    sed -i "s/%%OS%%/$OS/g" $1
+}
+
+# Function: Set_Root_User
+# Description: Set Root password
+# Args:
+#   $1: grub.cfg path
+function Set_Root_User() {
+    if [ ! "$ROOTUSR" ]; then
+        echo "Enter password for Root user, 2 times:"
+        ROOTUSR=$(grub2-mkpasswd-pbkdf2 -l 512 -s 2048 -c 2048)
+        ROOTUSR=${ROOTUSR##* }
+    fi
+    sed -i "s/%%ROOTUSR%%/password_pbkdf2 root $ROOTUSR/g" $1
+    sed -i -e "s/^ROOTUSR=*/ROOTUSR=\"password_pbkdf2 root $ROOTUSR\"/" /etc/BootMgr/BootMgr_.conf
+}
+
+# Function: Set_User
+# Description: Set User password
+# Args:
+#   $1: grub.cfg path
+function Set_User() {
+    if [ ! "$USER" ]; then
+        echo "Enter UserName"; read NEWUSER;
+        echo "Enter password for $NEWUSER user, 2 times:"
+        USER=$(grub2-mkpasswd-pbkdf2 -l 512 -s 2048 -c 2048)
+        USER=${USER##* }
+    fi
+    sed -i "s/%%USER%%/password_pbkdf2 $NEWUSER $USER/g" $1
+    sed -i -e "s/^USER=*/USER=\"password_pbkdf2 $NEWUSER $USER\"/" /etc/BootMgr/BootMgr_.conf
+}
+
+function Is_Installed() {
+ echo "1"
+}
+
+function Install_BootMgr() {
+ mkdir /etc/BootMgr
+ cp BootMgr_.conf /etc/BootMgr/
+ cp grub.template /etc/BootMgr/
+ cp theme.template /etc/BootMgr/
+}
+
+### We only run as root ###
+if [  "$(id -u)" != "0" ]; then
+    echo "this script must be run as root!"
+    exit -1
+fi
+
+### Checking if installed ###
+if [ "$(Is_Installed)" == "0" ]; then
+    echo "BootMgr seem not installed, do you want to install it [y/N]?"; read ANSWER
+    if [ "${ANSWER^^}" == "Y" ]; then
+        Install_BootMgr
+    else
+        exit -1
+    fi
+fi
+
+### Copying templates ###
+[ -r /tmp/grub.cfg.tmp ] && rm /tmp/grub.cfg.tmp
+cp /etc/bootMgr/grub.template /tmp/grub.cfg.tmp
+[ -r /tmp/theme.txt ] && rm /tmp/theme.txt
+cp /etc/bootMgr/theme.template /tmp/theme.txt
+
+### Starting changes:
+
+### Setting current OS (for icons):
+Get_OS
+
+### Setting Users Passwords:
+#Set_Root_User
+#Set_User
+
+#CurID=0
+#export CurID
+
+#Set_Kernels
+
+
+
+# Windows
+# 
+# rootgrub
+# roothd
+# timeout et style
+# OS
+# memtest
+# couleur du theme
+#   signature
