@@ -22,16 +22,17 @@
 
 # Function: Next_Id
 # Description: ensure each entry have a new, unique id
-# Args: None
+# Args:
+#   $1: CurID
 function Next_Id() {
-    CurID=$((CurID + 1))
-    echo $CurID
+    echo $(($1 + 1))
 }
 
 # Function: Set_Kernels
 # Description: Get Kernel list and update grub.cfg
 # Args:
 #   $1: grub.cfg path
+#   $2: CurID
 function Set_Kernels() {
     KLAST=""
     KPREV=""
@@ -43,11 +44,11 @@ function Set_Kernels() {
     done
     
     KRESCUE=$(basename $(ls -1tc /boot/vmlinuz-* | grep rescue))
-    awk -i inplace -v ID=$(Next_Id) 'NR==1,/%%ID%%/{sub(/%%ID%%/, ID)} 1' /tmp/grub.cfg.tmp
+    awk -i inplace -v ID=$(Next_Id $2) 'NR==1,/%%ID%%/{sub(/%%ID%%/, ID)} 1' /tmp/grub.cfg.tmp
     sed -i -e "s/%%KLAST%%/$KLAST/g" $1
-    awk -i inplace -v ID=$(Next_Id) 'NR==1,/%%ID%%/{sub(/%%ID%%/, ID)} 1' /tmp/grub.cfg.tmp
+    awk -i inplace -v ID=$(Next_Id $2) 'NR==1,/%%ID%%/{sub(/%%ID%%/, ID)} 1' /tmp/grub.cfg.tmp
     sed -i -e "s/%%KPREV%%/$KPREV/g" $1
-    awk -i inplace -v ID=$(Next_Id) 'NR==1,/%%ID%%/{sub(/%%ID%%/, ID)} 1' /tmp/grub.cfg.tmp
+    awk -i inplace -v ID=$(Next_Id $2) 'NR==1,/%%ID%%/{sub(/%%ID%%/, ID)} 1' /tmp/grub.cfg.tmp
     sed -i -e "s/%%KRESCUE%%/$KRESCUE/g" $1
 }
 
@@ -139,9 +140,8 @@ Set_Root_User /tmp/grub.cfg.tmp
 Set_User /tmp/grub.cfg.tmp
 
 CurID=0
-export CurID
 
-Set_Kernels /tmp/grub.cfg.tmp
+Set_Kernels /tmp/grub.cfg.tmp $CurID
 
 
 
