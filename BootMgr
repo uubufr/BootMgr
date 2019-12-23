@@ -94,7 +94,9 @@ function Set_User() {
 }
 
 function Is_Installed() {
- echo "1"
+ OK=1
+ [ -d /etc/BootMgr ] || OK=0
+ echo $OK
 }
 
 function Install_BootMgr() {
