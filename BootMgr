@@ -44,11 +44,11 @@ function Set_Kernels() {
     done
     
     KRESCUE=$(basename $(ls -1tc /boot/vmlinuz-* | grep rescue))
-    awk -i inplace -v ID=$(Next_Id $2) 'NR==1,/%%ID%%/{sub(/%%ID%%/, ID)} 1' /tmp/grub.cfg.tmp
+    awk -i inplace -v ID=$(( $2 + 1 )) 'NR==1,/%%ID%%/{sub(/%%ID%%/, ID)} 1' /tmp/grub.cfg.tmp
     sed -i -e "s/%%KLAST%%/$KLAST/g" $1
-    awk -i inplace -v ID=$(Next_Id $2) 'NR==1,/%%ID%%/{sub(/%%ID%%/, ID)} 1' /tmp/grub.cfg.tmp
+    awk -i inplace -v ID=$(( $2 + 2 )) 'NR==1,/%%ID%%/{sub(/%%ID%%/, ID)} 1' /tmp/grub.cfg.tmp
     sed -i -e "s/%%KPREV%%/$KPREV/g" $1
-    awk -i inplace -v ID=$(Next_Id $2) 'NR==1,/%%ID%%/{sub(/%%ID%%/, ID)} 1' /tmp/grub.cfg.tmp
+    awk -i inplace -v ID=$(( $2 + 3 )) 'NR==1,/%%ID%%/{sub(/%%ID%%/, ID)} 1' /tmp/grub.cfg.tmp
     sed -i -e "s/%%KRESCUE%%/$KRESCUE/g" $1
 }
 
