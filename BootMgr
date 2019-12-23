@@ -124,9 +124,9 @@ fi
 
 ### Copying templates ###
 [ -r /tmp/grub.cfg.tmp ] && rm /tmp/grub.cfg.tmp
-cp /etc/bootMgr/grub.template /tmp/grub.cfg.tmp
+cp /etc/BootMgr/grub.template /tmp/grub.cfg.tmp
 [ -r /tmp/theme.txt ] && rm /tmp/theme.txt
-cp /etc/bootMgr/theme.template /tmp/theme.txt
+cp /etc/BootMgr/theme.template /tmp/theme.txt
 
 ### Starting changes:
 
