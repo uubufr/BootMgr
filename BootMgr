@@ -131,7 +131,7 @@ cp /etc/BootMgr/theme.template /tmp/theme.txt
 ### Starting changes:
 
 ### Setting current OS (for icons):
-Get_OS
+Get_OS /tmp/grub.cfg.tmp
 
 ### Setting Users Passwords:
 #Set_Root_User
