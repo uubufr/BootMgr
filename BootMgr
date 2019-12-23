@@ -43,14 +43,11 @@ function Set_Kernels() {
     done
     
     KRESCUE=$(basename $(ls -1tc /boot/vmlinuz-* | grep rescue))
-    echo "last"
-    sed -i -e "s/%%ID%%/$(Next_Id)/" $1
+    sed -i -e "s/%%ID%%/$(Next_Id){Q}/" $1
     sed -i -e "s/%%KLAST%%/$KLAST/g" $1
-    sed -i -e "s/%%ID%%/$(Next_Id)/" $1
-    echo "prev"
+    #sed -i -e "s/%%ID%%/$(Next_Id)/" $1
     sed -i -e "s/%%KPREV%%/$KPREV/g" $1
-    sed -i -e "s/%%ID%%/$(Next_Id)/" $1
-    echo "rescue"
+    #sed -i -e "s/%%ID%%/$(Next_Id)/" $1
     sed -i -e "s/%%KRESCUE%%/$KRESCUE/g" $1
 }
 
