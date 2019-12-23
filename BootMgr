@@ -93,7 +93,7 @@ function Set_User() {
         SUPERUSER=${SUPERUSER##* }
     fi
     sed -i "s/%%USER%%/password_pbkdf2 $NEWUSER $SUPERUSER/g" $1
-    sed -i -e "s/^USER=*/USER=\"password_pbkdf2 $NEWUSER $SUPERUSER\"/" /etc/BootMgr/BootMgr_.conf
+    sed -i -e "s/^SUPERUSER=*/SUPERUSER=\"password_pbkdf2 $NEWUSER $SUPERUSER\"/" /etc/BootMgr/BootMgr_.conf
 }
 
 function Is_Installed() {
@@ -132,6 +132,7 @@ cp /etc/BootMgr/grub.template /tmp/grub.cfg.tmp
 cp /etc/BootMgr/theme.template /tmp/theme.txt.tmp
 
 ### Starting changes:
+. /etc/BootMgr/BootMgr_.conf
 
 ### Setting current OS (for icons):
 Get_OS /tmp/grub.cfg.tmp
