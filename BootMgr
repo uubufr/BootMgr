@@ -43,11 +43,11 @@ function Set_Kernels() {
     done
     
     KRESCUE=$(basename $(ls -1tc /boot/vmlinuz-* | grep rescue))
-    sed -i -e "s/%%ID%%/$(Next_Id){Q}/" $1
+    awk -i inplace -v ID=$(Next_Id) 'NR==1,/%%ID%%/{sub(/%%ID%%/, ID)} 1' /tmp/grub.cfg.tmp
     sed -i -e "s/%%KLAST%%/$KLAST/g" $1
-    #sed -i -e "s/%%ID%%/$(Next_Id)/" $1
+    awk -i inplace -v ID=$(Next_Id) 'NR==1,/%%ID%%/{sub(/%%ID%%/, ID)} 1' /tmp/grub.cfg.tmp
     sed -i -e "s/%%KPREV%%/$KPREV/g" $1
-    #sed -i -e "s/%%ID%%/$(Next_Id)/" $1
+    awk -i inplace -v ID=$(Next_Id) 'NR==1,/%%ID%%/{sub(/%%ID%%/, ID)} 1' /tmp/grub.cfg.tmp
     sed -i -e "s/%%KRESCUE%%/$KRESCUE/g" $1
 }
 
@@ -75,7 +75,7 @@ function Set_Root_User() {
         ROOTUSR=${ROOTUSR##* }
     fi
     sed -i "s/%%ROOTUSR%%/password_pbkdf2 root $ROOTUSR/g" $1
-    sed -i -e "s/^ROOTUSR=*/ROOTUSR=\"password_pbkdf2 root $ROOTUSR\"/" /etc/BootMgr/BootMgr_.conf
+    sed -i -e "s/^ROOTUSR=*$/ROOTUSR=\"password_pbkdf2 root $ROOTUSR\"/" /etc/BootMgr/BootMgr_.conf
 }
 
 # Function: Set_User
@@ -90,7 +90,7 @@ function Set_User() {
         SUPERUSER=${SUPERUSER##* }
     fi
     sed -i "s/%%USER%%/password_pbkdf2 $NEWUSER $SUPERUSER/g" $1
-    sed -i -e "s/^SUPERUSER=*/SUPERUSER=\"password_pbkdf2 $NEWUSER $SUPERUSER\"/" /etc/BootMgr/BootMgr_.conf
+    sed -i -e "s/^SUPERUSER=*$/SUPERUSER=\"password_pbkdf2 $NEWUSER $SUPERUSER\"/" /etc/BootMgr/BootMgr_.conf
 }
 
 function Is_Installed() {
