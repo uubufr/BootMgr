@@ -44,11 +44,11 @@ function Set_Kernels() {
     
     VMRESCUE=$(ls -1tc /boot/vmlinuz-* | grep rescue)
     sed -i -e "s/%%VMLAST%%/$VMLAST/g" $1
-    sed -i -e "s/%%ID%%/$(New_Id)/" $1
+    sed -i -e "s/%%ID%%/$(Next_Id)/" $1
     sed -i -e "s/%%VMPREV%%/$VMPREV/g" $1
-    sed -i -e "s/%%ID%%/$(New_Id)/" $1
+    sed -i -e "s/%%ID%%/$(Next_Id)/" $1
     sed -i -e "s/%%VMRESCUE%%/$VMRESCUE/g" $1
-    sed -i -e "s/%%ID%%/$(New_Id)/" $1
+    sed -i -e "s/%%ID%%/$(Next_Id)/" $1
 }
 
 # Function: Get_OS
