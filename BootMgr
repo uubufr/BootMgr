@@ -48,8 +48,8 @@ function Set_Kernels() {
     sed -i -e "s/%%VMLAST%%/$VMLAST/g" $1
     sed -i -e "s/%%ID%%/$(Next_Id)/" $1
     echo "prev"
-    sed -i -e "s/%%VMPREV%%/$VMPREV/g" $1
-    sed -i -e "s/%%ID%%/$(Next_Id)/" $1
+    sed -i "s/%%VMPREV%%/$VMPREV/g" $1
+    sed -i "s/%%ID%%/$(Next_Id)/" $1
     echo "rescue"
     sed -i -e "s/%%VMRESCUE%%/$VMRESCUE/g" $1
 }
