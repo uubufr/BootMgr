@@ -126,7 +126,7 @@ fi
 [ -r /tmp/grub.cfg.tmp ] && rm /tmp/grub.cfg.tmp
 cp /etc/BootMgr/grub.template /tmp/grub.cfg.tmp
 [ -r /tmp/theme.txt ] && rm /tmp/theme.txt
-cp /etc/BootMgr/theme.template /tmp/theme.txt
+cp /etc/BootMgr/theme.template /tmp/theme.txt.tmp
 
 ### Starting changes:
 
@@ -134,8 +134,8 @@ cp /etc/BootMgr/theme.template /tmp/theme.txt
 Get_OS /tmp/grub.cfg.tmp
 
 ### Setting Users Passwords:
-#Set_Root_User
-#Set_User
+Set_Root_User /tmp/grub.cfg.tmp
+Set_User /tmp/grub.cfg.tmp
 
 #CurID=0
 #export CurID
