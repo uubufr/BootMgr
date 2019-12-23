@@ -137,10 +137,10 @@ Get_OS /tmp/grub.cfg.tmp
 Set_Root_User /tmp/grub.cfg.tmp
 Set_User /tmp/grub.cfg.tmp
 
-#CurID=0
-#export CurID
+CurID=0
+export CurID
 
-#Set_Kernels
+Set_Kernels /tmp/grub.cfg.tmp
 
 
 
