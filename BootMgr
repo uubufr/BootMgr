@@ -38,8 +38,8 @@ function Set_Kernels() {
     VMRESCUE=""
     
     for KERNEL in $(ls -1tc /boot/vmlinuz-* | grep -v rescue | head -3); do
-        [ "$VMLAST" ] && [ ! "$VMPREV" ] && VMPREV=$KERNEL
-        [ "$VMLAST" ] || VMLAST=$KERNEL
+        [ "$VMLAST" ] && [ ! "$VMPREV" ] && VMPREV=$(basename $KERNEL)
+        [ "$VMLAST" ] || VMLAST=$(basename $KERNEL)
     done
     
     VMRESCUE=$(ls -1tc /boot/vmlinuz-* | grep rescue)
@@ -48,8 +48,8 @@ function Set_Kernels() {
     sed -i -e "s/%%VMLAST%%/$VMLAST/g" $1
     sed -i -e "s/%%ID%%/$(Next_Id)/" $1
     echo "prev"
-    sed -i "s/%%VMPREV%%/$VMPREV/g" $1
-    sed -i "s/%%ID%%/$(Next_Id)/" $1
+    sed -i -e "s/%%VMPREV%%/$VMPREV/g" $1
+    sed -i -e "s/%%ID%%/$(Next_Id)/" $1
     echo "rescue"
     sed -i -e "s/%%VMRESCUE%%/$VMRESCUE/g" $1
 }
