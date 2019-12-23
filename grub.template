@@ -1,0 +1,124 @@
+%%SIGN%%
+insmod all_video
+insmod part_msdos
+insmod part_gpt
+insmod gzio
+insmod ext2
+insmod png
+insmod gfxterm
+
+loadfont $prefix/themes/ascii.pf2
+loadfont $prefix/themes/DejaVuSans10.pf2
+loadfont $prefix/themes/DejaVuSans12.pf2
+loadfont $prefix/themes/DejaVuSans-Bold14.pf2
+loadfont $prefix/fonts/euro.pf2
+loadfont $prefix/fonts/unicode.pf2
+font=unicode
+
+set root=%%GRUBROOT%%
+search --no-floppy --fs-uuid --set=root %%UUIDROOT%%
+export root
+
+set locale_dir=$prefix/locale
+set lang=%%LANG%%
+insmod gettext
+set gfxmode=auto
+terminal_output gfxterm
+set theme=$prefix/themes/theme.txt
+export theme
+set timeout_style=%%STYLE%%
+set timeout=%%TIMEOUT%%
+
+%%ROOTUSR%%
+%%USER%%
+set superusers="root"
+export superusers
+
+
+HDROOT=%%HDROOT%%
+OPTIONS=%%KERNELOPTS%%
+OPTRESCUE=%%KERNELRESCUE%%
+
+# Current Kernel
+KLAST=%%KLAST%%
+# Previous kernel
+KPREV=%%KPREV%%
+# Rescue
+KRESCUE=%%KRESCUE%%
+
+export HDROOT
+export OPTIONS
+export OPTRESCUE
+export KLAST
+export KPREV
+export KRESCUE
+
+if [ "$KLAST" ]; then
+ menuentry "Fedora $KLAST" --class default --class %%OS%% --class gnu-linux --unrestricted --id=%%ID%% {
+  linuxefi /vmlinuz-$KLAST root=$HDUUID $OPTIONS rd.driver.blacklist=nouveau
+  initrdefi /initramfs-$KLAST.img
+ }
+fi
+
+if [ "$KPREV" ]; then
+ menuentry "Fedora $KPREV (previous kernel)" --class latest --class %%OS%% --class gnu-linux --unrestricted --id=%%ID%% {
+  linuxefi /vmlinuz-$KPREV root=$HDUUID $OPTIONS
+  initrdefi /initramfs-$KPREV.img
+ }
+fi
+
+submenu "Accès Administratif (restreint)" --class recovery --users %%SUPERUSER%% --id=%%ID%% {
+
+ if [ "$KLAST" ]; then
+  menuentry "Fedora $KLAST (recovery mode)" --class default --class %%OS%% --class gnu-linux --unrestricted --id=%%ID%% {
+   linuxefi /vmlinuz-$KLAST root=$HDUUID $OPTRESCUE
+   initrdefi /initramfs-$KLAST.img
+  }
+ fi
+
+ if [ "$KPREV" ]; then
+  menuentry "Fedora $KPREV (testing, recovery mode)" --class latest --class %%OS%% --class gnu-linux --unrestricted --id=%%ID%% {
+   linuxefi /vmlinuz-$KPREV root=$HDUUID $OPTRESCUE
+   initrdefi /initramfs-$KPREV.img
+  }
+ fi
+
+ if [ "$KRESCUE" ]; then
+  menuentry "Fedora $KRESCUE (legacy, recovery mode)" --class old --class %%OS%% --class gnu-linux --users unrestricted --id=%%ID%% {
+   linuxefi /vmlinuz-$KRESCUE root=$HDUUID $OPTRESCUE
+   initrdefi /initramfs-$KRESCUE.img
+  }
+ fi
+
+%%MEMTEST%%
+
+ menuentry "System Setup" --class UEFI --unrestricted --id=%%ID%% {
+  fwsetup
+ }
+
+ menuentry "Redémarrer" --class reboot --unrestricted --id=%%ID%% {
+  reboot
+ }
+
+ menuentry "Arrêter" --class poweroff --unrestricted --id=%%ID%% {
+  halt
+ }
+
+}
+
+menuentry "Windows" --class windows --class useless --users %%SUPERUSER%% --id=%%ID%% {
+  insmod part_gpt
+  insmod fat
+  insmod ntfs
+  parttool ${root} hidden-
+  search --no-floppy --fs-uuid --set=root %%WINROOTID%%
+  chainloader /EFI/Microsoft/Boot/bootmgfw.efi
+}
+
+menuentry "Redémarrer" --class reboot --unrestricted --id=%%ID%% {
+ reboot
+}
+
+menuentry "Arrêter" --class poweroff --unrestricted --id=%%ID%% {
+ halt
+}
