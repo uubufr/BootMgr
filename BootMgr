@@ -119,6 +119,7 @@ echo "test de dir $@"
  [ -d /etc/BootMgr/themes ] || cp -r themes /etc/BootMgr/
  [ -d /boot/efi/EFI/$(Get_OS)/themes ] || mkdir /boot/efi/EFI/$(Get_OS)/themes
  [ -d /boot/efi/EFI/$(Get_OS)/themes/BootMgr ] || mkdir /boot/efi/EFI/$(Get_OS)/themes/BootMgr
+ [ -d /etc/BootMgr/icons ] || cp -r icons /etc/BootMgr
  cp fonts/* /boot/efi/EFI/$(Get_OS)/fonts/
 }
 
