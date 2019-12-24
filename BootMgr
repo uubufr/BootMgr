@@ -206,14 +206,16 @@ THEMEDIR=$(echo $BOOTMGR_BOXCOLOR | tr \  \- )
 mkdir /tmp/BootMgr/
 read -r R G B <<< $(echo $BOOTMGR_BOXCOLOR)
 for image in $(ls /etc/BootMgr/themes/template/); do
-    convert /etc/BootMgr/themes/template/$image -fuzz 20% -fill "rgb($R,$G,$B)" -opaque 'rgb(0,0,0)' /tmp/BootMgr/$image
+    convert /etc/BootMgr/themes/template/$image -colorspace srgb -fuzz 20% -fill "rgb($R,$G,$B)" -opaque 'rgb(0,0,0)' /tmp/BootMgr/$image
 done
 
 sed -i -e "s/%%THEME%%/$THEMEDIR/g" /tmp/theme.txt.tmp
 
 ### install theme ###
+rm -rf /boot/efi/EFI/$(Get_OS)/themes/BootMgr/*
 cp /tmp/BootMgr/* /boot/efi/EFI/$(Get_OS)/themes/BootMgr/$THEMEDIR/
 cp /tmp/theme.txt.tmp /boot/efi/EFI/$(Get_OS)/themes/BootMgr/theme.txt
+cp -r /etc/BootMgr/icons /boot/efi/EFI/$(Get_OS)/themes/BootMgr/$THEMEDIR/
 
 
 ### Windows ###
