@@ -107,6 +107,7 @@ function Is_Installed() {
 }
 
 function Install_BootMgr() {
+echo "test de dir $@"
  if [ "$(rpm -qa ImageMagick)" == "" ]; then
     echo "You must install ImageMagick, do you want install it now? [y/N]"; read answer
     if [ "${answer^^}" == "Y" ]; then dnf install ImageMagick; fi
@@ -118,7 +119,7 @@ function Install_BootMgr() {
  [ -d /etc/BootMgr/themes ] || cp -r themes /etc/BootMgr/
  [ -d /boot/efi/EFI/$(Get_OS)/themes ] || mkdir /boot/efi/EFI/$(Get_OS)/themes
  [ -d /boot/efi/EFI/$(Get_OS)/themes/BootMgr ] || mkdir /boot/efi/EFI/$(Get_OS)/themes/BootMgr
- cp BootMgr/fonts/* /boot/efi/EFI/$(Get_OS)/fonts/
+ cp fonts/* /boot/efi/EFI/$(Get_OS)/fonts/
 }
 
 ### We only run as root ###
