@@ -217,8 +217,8 @@ rm -rf /boot/efi/EFI/$(Get_OS)/themes/BootMgr/*
 mkdir -p /boot/efi/EFI/$(Get_OS)/themes/BootMgr/$THEMEDIR/background
 cp /tmp/BootMgr/* /boot/efi/EFI/$(Get_OS)/themes/BootMgr/$THEMEDIR/
 cp /tmp/theme.txt.tmp /boot/efi/EFI/$(Get_OS)/themes/BootMgr/theme.txt
-cp -r /etc/BootMgr/icons /boot/efi/EFI/$(Get_OS)/themes/BootMgr/$THEMEDIR/
-cp -r /etc/BootMgr/themes/background/background.png /boot/efi/EFI/$(Get_OS)/themes/BootMgr/$THEMEDIR/background
+cp -r /etc/BootMgr/icons /boot/efi/EFI/$(Get_OS)/themes/BootMgr/
+cp -r /etc/BootMgr/themes/background/background.png /boot/efi/EFI/$(Get_OS)/themes/BootMgr/background
 
 
 ### Windows ###
