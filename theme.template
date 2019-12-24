@@ -8,9 +8,9 @@ message-font: "Gnu Unifont Mono Regular 16"
 message-color: "#aaa"
 message-bg-color: "#000"
 
-desktop-image: "background.png"
+desktop-image: "background/background.png"
 
-terminal-box: "terminal_*.png"
+terminal-box: "%%THEME%%/terminal_*.png"
 terminal-font: "Gnu Unifont Mono Regular 16"
 
 + boot_menu {
@@ -19,7 +19,7 @@ terminal-font: "Gnu Unifont Mono Regular 16"
   top = 25%
   height = 50%	
 
-  menu_pixmap_style = "boot_menu_*.png"
+  menu_pixmap_style = "%%THEME%%/boot_menu_*.png"
 
   item_font = "DejaVu Sans Bold 14"
   item_color = "#000"
@@ -56,8 +56,8 @@ terminal-font: "Gnu Unifont Mono Regular 16"
   border_color = "#fff"
 
   # instead of the above colors, use pixmaps
-  # bar_style = "progress_bar_*.png"
-  # highlight_style = "progress_highlight_*.png"
+  # bar_style = "%%THEME%%/progress_bar_*.png"
+  # highlight_style = "%%THEME%%/progress_highlight_*.png"
 
   text = "@TIMEOUT_NOTIFICATION_LONG@"
 }

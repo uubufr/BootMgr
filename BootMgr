@@ -24,6 +24,8 @@
 # Description: ensure each entry have a new, unique id
 # Args:
 #   $1: CurID
+# on conserve le awk:
+#     awk -i inplace -v ID=$(( $2 + 1 )) 'NR==1,/%%ID%%/{sub(/%%ID%%/, ID)} 1' /tmp/grub.cfg.tmp
 function Next_Id() {
     echo $(($1 + 1))
 }
@@ -32,7 +34,6 @@ function Next_Id() {
 # Description: Get Kernel list and update grub.cfg
 # Args:
 #   $1: grub.cfg path
-#   $2: CurID
 function Set_Kernels() {
     KLAST=""
     KPREV=""
@@ -44,11 +45,8 @@ function Set_Kernels() {
     done
     
     KRESCUE=$(basename $(ls -1tc /boot/vmlinuz-* | grep rescue))
-    awk -i inplace -v ID=$(( $2 + 1 )) 'NR==1,/%%ID%%/{sub(/%%ID%%/, ID)} 1' /tmp/grub.cfg.tmp
     sed -i -e "s/%%KLAST%%/$KLAST/g" $1
-    awk -i inplace -v ID=$(( $2 + 2 )) 'NR==1,/%%ID%%/{sub(/%%ID%%/, ID)} 1' /tmp/grub.cfg.tmp
     sed -i -e "s/%%KPREV%%/$KPREV/g" $1
-    awk -i inplace -v ID=$(( $2 + 3 )) 'NR==1,/%%ID%%/{sub(/%%ID%%/, ID)} 1' /tmp/grub.cfg.tmp
     sed -i -e "s/%%KRESCUE%%/$KRESCUE/g" $1
 }
 
@@ -101,10 +99,13 @@ function Is_Installed() {
 }
 
 function Install_BootMgr() {
- mkdir /etc/BootMgr
- cp BootMgr_.conf /etc/BootMgr/
- cp grub.template /etc/BootMgr/
- cp theme.template /etc/BootMgr/
+ [ -d /etc/BootMgr ] || mkdir /etc/BootMgr
+ [ -r /etc/BootMgr/BootMgr_.conf ] || cp BootMgr_.conf /etc/BootMgr/
+ [ -r /etc/BootMgr/grub.template ] || cp grub.template /etc/BootMgr/
+ [ -r /etc/BootMgr/theme.template ] || cp theme.template /etc/BootMgr/
+ [ -d /etc/BootMgr/BootMgr ] || cp -r BootMgr /etc/BootMgr/
+ [ -d /boot/grub2/themes/BootMgr ] || mkdir /boot/grub2/themes/BootMgr
+ # copier les icons
 }
 
 ### We only run as root ###
@@ -139,18 +140,71 @@ Get_OS /tmp/grub.cfg.tmp
 Set_Root_User /tmp/grub.cfg.tmp
 Set_User /tmp/grub.cfg.tmp
 
-CurID=0
+Set_Kernels /tmp/grub.cfg.tmp
 
-Set_Kernels /tmp/grub.cfg.tmp $CurID
+### Root part ###:
+GRUBPART=$(mount -l | grep "/boot "); GRUBPART=${GRUBPART%% *}
+GRUBUUID=$(lsblk -o uuid $GRUBPART | tail -1)
+
+sed -i -e "s/%%GRUBROOT%%/UUID=$GRUBUUID/g" /tmp/grub.cfg.tmp
+sed -i -e "s/%%UUIDROOT%%/UUID=$GRUBUUID/g" /tmp/grub.cfg.tmp
+
+### Linux Root HD ###
+ROOTPART=$(mount -l | grep "/ "); $ROOTPART=${ROOTPART%% *}
+sed -i -e "s|%%HDROOT%%|$ROOTPART|g" /tmp/grub.cfg.tmp
+
+### Linux Options ###
+CURRENTCMDLINE=$(cat /proc/cmdline); CURRENTCMDLINE=${CURRENTCMDLINE#* }
+[ "$KERNELOPTS" ] || KERNELOPTS=$CURRENTCMDLINE
+sed -i -e "s|%%KERNELOPTS%%|$KERNELOPTS|g" /tmp/grub.cfg.tmp
+[ "$RESCUEOPTS" ] || RESCUEOPTS="ro single $CURRENTCMDLINE"
+sed -i -e "s|%%KERNELRESCUE%%|$RESCUEOPTS|g" /tmp/grub.cfg.tmp
+
+### Lang ###
+[ "$LANG" ] || LANG=en_US
+sed -i "s/%%LANG%%/lang=$LANG" /tmp/grub.cfg.tmp
+
+### MENU ###
+[ "$TIMEOUT" ] || TIMEOUT=5
+sed -i "s/%%TIMEOUT%%/$TIMEOUT/g" /tmp/grub.cfg.tmp
+
+[ "$STYLE" ] || STYLE="menu"
+sed -i "s/%%STYLE%%/$STYLE/g" /tmp/grub.cfg.tmp
+
+### Background Image ###
+[ "BACKGROUND" ] || sed -i "s/%%BACKGROUNDIMG%%//g" /tmp/theme.txt.tmp
+#[ "BACKCOLOR" ] || sed -i -e "s/^desktop-color=*$/desktop-color=\"$BACKCOLOR\"/g" /tmp/theme.txt.tmp
+#[ "TEXTCOLOR" ]
+#[ 
+#message-color: "#aaa"
+#message-bg-color: "#000"
+#text_color = "#000"
+#fg_color = "#aaa"
+#bg_color = "#999"
+#border_color = "#fff"
+
+#title-text: "Uubu.fr Boot Menu"
+### Colors ###
+[ "$BOXCOLOR" ] || BOXCOLOR="116 123 209"
+
+DIR=$(echo $BOXCOLOR | tr \  \- )
+[ -d /boot/grub2/themes/BootMgr/$DIR ] || mkdir /boot/grub2/themes/BootMgr/$DIR
+mkdir /tmp/BootMgr/
+read -r R G B <<< $(echo $BOXCOLOR)
+for image in $(ls /etc/BootMgr/themes/template/); do
+    convert /etc/BootMgr/themes/template/$image -fuzz 20% -fill "rgb($R,$G,$B)" -opaque 'rgb(0,0,0)' /tmp/BootMgr/$image
+done
+
+cp /tmp/BootMgr/* /boot/grub2/themes/BootMgr/$DIR/*
+cp /tmp/theme.txt.tmp /boot/grub2/themes/BootMgr/theme.txt
+
+### Windows ###
+
+
+### Windows Root ID ###
+
+### Signature ###
 
 
 
-# Windows
-# 
-# rootgrub
-# roothd
-# timeout et style
-# OS
-# memtest
-# couleur du theme
-#   signature
+### Suppression des fichiers templates ###
