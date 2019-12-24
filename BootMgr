@@ -90,6 +90,7 @@ function Set_User() {
     fi
     sed -i "s/%%USER%%/password_pbkdf2 $NEWUSER $BOOTMGR_SUPERUSER/g" $1
     sed -i -e "s/^SUPERUSER=*$/SUPERUSER=\"password_pbkdf2 $NEWUSER $BOOTMGR_SUPERUSER\"/" /etc/BootMgr/BootMgr_.conf
+    sed -i -e "s/%%WITHUSER%%/$NEWUSER/g" $1
 }
 
 function Is_Installed() {
@@ -199,16 +200,27 @@ for image in $(ls /etc/BootMgr/themes/template/); do
     convert /etc/BootMgr/themes/template/$image -fuzz 20% -fill "rgb($R,$G,$B)" -opaque 'rgb(0,0,0)' /tmp/BootMgr/$image
 done
 
+sed -i -e "s/%%THEME%%/$THEMEDIR/g" /tmp/theme.txt.tmp
 
+### install theme ###
 cp /tmp/BootMgr/* /boot/grub2/themes/BootMgr/$THEMEDIR/
 cp /tmp/theme.txt.tmp /boot/grub2/themes/BootMgr/theme.txt
+
+
 ### Windows ###
 
 
 ### Windows Root ID ###
 
+
 ### Signature ###
 
+### Install grub.cfg ###
 
+
+### Sign data ###
 
 ### Suppression des fichiers templates ###
+#rm /tmp/grub.cfg.tmp
+#rm /tmp/theme.txt.tmp
+#rm -rf /tmp/BootMgr

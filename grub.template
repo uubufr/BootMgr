@@ -64,7 +64,7 @@ if [ "$KPREV" ]; then
  }
 fi
 
-submenu "Accès Administratif (restreint)" --class recovery --users %%SUPERUSER%% --id=3 {
+submenu "Accès Administratif (restreint)" --class recovery --users superusers --id=3 {
 
  if [ "$KLAST" ]; then
   menuentry "Fedora $KLAST (recovery mode)" --class default --class %%OS%% --class gnu-linux --unrestricted --id=4 {
@@ -101,7 +101,7 @@ submenu "Accès Administratif (restreint)" --class recovery --users %%SUPERUSER%
 
 }
 
-#menuentry "Windows" --class windows --class useless --users %%SUPERUSER%% --id=10 {
+#menuentry "Windows" --class windows --class useless --users %%WITHUSER%% --id=10 {
 #  insmod part_gpt
 #  insmod fat
 #  insmod ntfs
