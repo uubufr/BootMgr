@@ -68,13 +68,13 @@ function Get_OS() {
 # Args:
 #   $1: grub.cfg path
 function Set_Root_User() {
-    if [ ! "$ROOTUSR" ]; then
+    if [ ! "$BOOTMGR_ROOTUSR" ]; then
         echo "Enter password for Root user, 2 times:"
-        ROOTUSR=$(grub2-mkpasswd-pbkdf2 -l 512 -s 2048 -c 2048)
-        ROOTUSR=${ROOTUSR##* }
+        BOOTMGR_ROOTUSR=$(grub2-mkpasswd-pbkdf2 -l 512 -s 2048 -c 2048)
+        BOOTMGR_ROOTUSR=${BOOTMGR_ROOTUSR##* }
     fi
-    sed -i "s/%%ROOTUSR%%/password_pbkdf2 root $ROOTUSR/g" $1
-    sed -i -e "s/^ROOTUSR=*$/ROOTUSR=\"password_pbkdf2 root $ROOTUSR\"/" /etc/BootMgr/BootMgr_.conf
+    sed -i "s/%%ROOTUSR%%/password_pbkdf2 root $BOOTMGR_ROOTUSR/g" $1
+    sed -i -e "s/^ROOTUSR=*$/ROOTUSR=\"password_pbkdf2 root $BOOTMGR_ROOTUSR\"/" /etc/BootMgr/BootMgr_.conf
 }
 
 # Function: Set_User
@@ -82,14 +82,14 @@ function Set_Root_User() {
 # Args:
 #   $1: grub.cfg path
 function Set_User() {
-    if [ ! "$SUPERUSER" ]; then
+    if [ ! "$BOOTMGR_SUPERUSER" ]; then
         echo "Enter UserName"; read NEWUSER;
         echo "Enter password for $NEWUSER user, 2 times:"
-        SUPERUSER=$(grub2-mkpasswd-pbkdf2 -l 512 -s 2048 -c 2048)
-        SUPERUSER=${SUPERUSER##* }
+        BOOTMGR_SUPERUSER=$(grub2-mkpasswd-pbkdf2 -l 512 -s 2048 -c 2048)
+        BOOTMGR_SUPERUSER=${BOOTMGR_SUPERUSER##* }
     fi
-    sed -i "s/%%USER%%/password_pbkdf2 $NEWUSER $SUPERUSER/g" $1
-    sed -i -e "s/^SUPERUSER=*$/SUPERUSER=\"password_pbkdf2 $NEWUSER $SUPERUSER\"/" /etc/BootMgr/BootMgr_.conf
+    sed -i "s/%%USER%%/password_pbkdf2 $NEWUSER $BOOTMGR_SUPERUSER/g" $1
+    sed -i -e "s/^SUPERUSER=*$/SUPERUSER=\"password_pbkdf2 $NEWUSER $BOOTMGR_SUPERUSER\"/" /etc/BootMgr/BootMgr_.conf
 }
 
 function Is_Installed() {
@@ -159,24 +159,24 @@ sed -i -e "s|%%HDROOT%%|$ROOTPART|g" /tmp/grub.cfg.tmp
 
 ### Linux Options ###
 CURRENTCMDLINE=$(cat /proc/cmdline); CURRENTCMDLINE=${CURRENTCMDLINE#* }
-[ "$KERNELOPTS" ] || KERNELOPTS=$CURRENTCMDLINE
-sed -i -e "s|%%KERNELOPTS%%|$KERNELOPTS|g" /tmp/grub.cfg.tmp
-[ "$RESCUEOPTS" ] || RESCUEOPTS="ro single $CURRENTCMDLINE"
-sed -i -e "s|%%KERNELRESCUE%%|$RESCUEOPTS|g" /tmp/grub.cfg.tmp
+[ "$BOOTMGR_KERNELOPTS" ] || BOOTMGR_KERNELOPTS=$CURRENTCMDLINE
+sed -i -e "s|%%KERNELOPTS%%|$BOOTMGR_KERNELOPTS|g" /tmp/grub.cfg.tmp
+[ "$BOOTMGR_RESCUEOPTS" ] || BOOTMGR_RESCUEOPTS="ro single $CURRENTCMDLINE"
+sed -i -e "s|%%KERNELRESCUE%%|$BOOTMGR_RESCUEOPTS|g" /tmp/grub.cfg.tmp
 
 ### Lang ###
-[ "$LANG" ] || LANG=en_US
-sed -i "s/%%LANG%%/$LANG/g" /tmp/grub.cfg.tmp
+[ "$BOOTMGR_LANG" ] || BOOTMGR_LANG=en_US
+sed -i "s/%%LANG%%/$BOOTMGR_LANG/g" /tmp/grub.cfg.tmp
 
 ### MENU ###
-[ "$TIMEOUT" ] || TIMEOUT=5
-sed -i "s/%%TIMEOUT%%/$TIMEOUT/g" /tmp/grub.cfg.tmp
+[ "$BOOTMGR_TIMEOUT" ] || BOOTMGR_TIMEOUT=5
+sed -i "s/%%TIMEOUT%%/$BOOTMGR_TIMEOUT/g" /tmp/grub.cfg.tmp
 
-[ "$STYLE" ] || STYLE="menu"
-sed -i "s/%%STYLE%%/$STYLE/g" /tmp/grub.cfg.tmp
+[ "$BOOTMGR_STYLE" ] || BOOTMGR_STYLE="menu"
+sed -i "s/%%STYLE%%/$BOOTMGR_STYLE/g" /tmp/grub.cfg.tmp
 
 ### Background Image ###
-[ "BACKGROUND" ] || sed -i "s/%%BACKGROUNDIMG%%//g" /tmp/theme.txt.tmp
+[ "BOOTMGR_BACKGROUND" ] || sed -i "s/%%BACKGROUNDIMG%%//g" /tmp/theme.txt.tmp
 #[ "BACKCOLOR" ] || sed -i -e "s/^desktop-color=*$/desktop-color=\"$BACKCOLOR\"/g" /tmp/theme.txt.tmp
 #[ "TEXTCOLOR" ]
 #[ 
@@ -189,18 +189,18 @@ sed -i "s/%%STYLE%%/$STYLE/g" /tmp/grub.cfg.tmp
 
 #title-text: "Uubu.fr Boot Menu"
 ### Colors ###
-[ "$BOXCOLOR" ] || BOXCOLOR="116 123 209"
+[ "$BOOTMGR_BOXCOLOR" ] || BOOTMGR_BOXCOLOR="116 123 209"
 
-DIR=$(echo $BOXCOLOR | tr \  \- )
-[ -d /boot/grub2/themes/BootMgr/$DIR ] || mkdir /boot/grub2/themes/BootMgr/$DIR
+THEMEDIR=$(echo $BOOTMGR_BOXCOLOR | tr \  \- )
+[ -d /boot/grub2/themes/BootMgr/$THEMEDIR ] || mkdir /boot/grub2/themes/BootMgr/$THEMEDIR
 mkdir /tmp/BootMgr/
-read -r R G B <<< $(echo $BOXCOLOR)
+read -r R G B <<< $(echo $BOOTMGR_BOXCOLOR)
 for image in $(ls /etc/BootMgr/themes/template/); do
     convert /etc/BootMgr/themes/template/$image -fuzz 20% -fill "rgb($R,$G,$B)" -opaque 'rgb(0,0,0)' /tmp/BootMgr/$image
 done
 
 
-cp /tmp/BootMgr/* /boot/grub2/themes/BootMgr/$DIR/
+cp /tmp/BootMgr/* /boot/grub2/themes/BootMgr/$THEMEDIR/
 cp /tmp/theme.txt.tmp /boot/grub2/themes/BootMgr/theme.txt
 ### Windows ###
 
