@@ -59,8 +59,7 @@ function Get_OS() {
     [ -r /etc/centos-release ] && OS=centos
     [ -r /etc/fedora-release ] && OS=fedora
     echo $OS
-fi
-
+}
 
 # Function: Set_OS
 # Description: get linux distrib name
