@@ -81,7 +81,7 @@ function Set_Root_User() {
         BOOTMGR_ROOTUSR=${BOOTMGR_ROOTUSR##* }
     fi
     sed -i "s/%%ROOTUSR%%/password_pbkdf2 root $BOOTMGR_ROOTUSR/g" $1
-    sed -i -e "s/^ROOTUSR=*$/ROOTUSR=\"password_pbkdf2 root $BOOTMGR_ROOTUSR\"/" /etc/BootMgr/BootMgr_.conf
+    sed -i -e "s/^BOOTMGR_ROOTUSR=*$/BOOTMGR_ROOTUSR=\"password_pbkdf2 root $BOOTMGR_ROOTUSR\"/" /etc/BootMgr/BootMgr_.conf
 }
 
 # Function: Set_User
@@ -96,7 +96,7 @@ function Set_User() {
         BOOTMGR_SUPERUSER=${BOOTMGR_SUPERUSER##* }
     fi
     sed -i "s/%%USER%%/password_pbkdf2 $NEWUSER $BOOTMGR_SUPERUSER/g" $1
-    sed -i -e "s/^SUPERUSER=*$/SUPERUSER=\"password_pbkdf2 $NEWUSER $BOOTMGR_SUPERUSER\"/" /etc/BootMgr/BootMgr_.conf
+    sed -i -e "s/^BOOTMGR_SUPERUSER=*$/BOOTMGR_SUPERUSER=\"password_pbkdf2 $NEWUSER $BOOTMGR_SUPERUSER\"/" /etc/BootMgr/BootMgr_.conf
     sed -i -e "s/%%WITHUSER%%/$NEWUSER/g" $1
 }
 
