@@ -235,6 +235,5 @@ mv /tmp/grub.cfg.tmp /boot/efi/EFI/$(Get_OS)/grub.cfg
 ### Sign data ###
 
 ### Suppression des fichiers templates ###
-rm /tmp/grub.cfg.tmp
 rm /tmp/theme.txt.tmp
 rm -rf /tmp/BootMgr
