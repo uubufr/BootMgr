@@ -229,11 +229,12 @@ cp -r /etc/BootMgr/themes/background/background.png /boot/efi/EFI/$(Get_OS)/them
 ### Signature ###
 
 ### Install grub.cfg ###
-
+mv /boot/efi/EFI/$(Get_OS)/grub.cfg /boot/efi/EFI/$(Get_OS)/grub.cfg-$(date '+%Y-%M-%d')
+mv /tmp/grub.cfg.tmp /boot/efi/EFI/$(Get_OS)/grub.cfg
 
 ### Sign data ###
 
 ### Suppression des fichiers templates ###
-#rm /tmp/grub.cfg.tmp
+rm /tmp/grub.cfg.tmp
 rm /tmp/theme.txt.tmp
 rm -rf /tmp/BootMgr
