@@ -45,9 +45,9 @@ function Set_Kernels() {
     done
     
     KRESCUE=$(basename $(ls -1tc /boot/vmlinuz-* | grep rescue))
-    sed -i -e "s/%%KLAST%%/$KLAST/g" $1
-    sed -i -e "s/%%KPREV%%/$KPREV/g" $1
-    sed -i -e "s/%%KRESCUE%%/$KRESCUE/g" $1
+    sed -i -e "s/%%KLAST%%/${KLAST#vmlinuz-}/g" $1
+    sed -i -e "s/%%KPREV%%/${KPREV#vmlinuz-}/g" $1
+    sed -i -e "s/%%KRESCUE%%/${KRESCUE#vmlinuz-}/g" $1
 }
 
 # Funtion: Get_OS
