@@ -154,7 +154,7 @@ sed -i -e "s/%%GRUBROOT%%/UUID=$GRUBUUID/g" /tmp/grub.cfg.tmp
 sed -i -e "s/%%UUIDROOT%%/UUID=$GRUBUUID/g" /tmp/grub.cfg.tmp
 
 ### Linux Root HD ###
-ROOTPART=$(mount -l | grep "/ "); $ROOTPART=${ROOTPART%% *}
+ROOTPART=$(mount -l | grep "/ "); ROOTPART=${ROOTPART%% *}
 sed -i -e "s|%%HDROOT%%|$ROOTPART|g" /tmp/grub.cfg.tmp
 
 ### Linux Options ###
@@ -166,7 +166,7 @@ sed -i -e "s|%%KERNELRESCUE%%|$RESCUEOPTS|g" /tmp/grub.cfg.tmp
 
 ### Lang ###
 [ "$LANG" ] || LANG=en_US
-sed -i "s/%%LANG%%/lang=$LANG/g" /tmp/grub.cfg.tmp
+sed -i "s/%%LANG%%/$LANG/g" /tmp/grub.cfg.tmp
 
 ### MENU ###
 [ "$TIMEOUT" ] || TIMEOUT=5
@@ -199,9 +199,9 @@ for image in $(ls /etc/BootMgr/themes/template/); do
     convert /etc/BootMgr/themes/template/$image -fuzz 20% -fill "rgb($R,$G,$B)" -opaque 'rgb(0,0,0)' /tmp/BootMgr/$image
 done
 
-cp /tmp/BootMgr/* /boot/grub2/themes/BootMgr/$DIR/*
-cp /tmp/theme.txt.tmp /boot/grub2/themes/BootMgr/theme.txt
 
+cp /tmp/BootMgr/* /boot/grub2/themes/BootMgr/$DIR/
+cp /tmp/theme.txt.tmp /boot/grub2/themes/BootMgr/theme.txt
 ### Windows ###
 
 
