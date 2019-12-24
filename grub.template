@@ -11,8 +11,8 @@ loadfont $prefix/fonts/ascii.pf2
 loadfont $prefix/fonts/DejaVuSans10.pf2
 loadfont $prefix/fonts/DejaVuSans12.pf2
 loadfont $prefix/fonts/DejaVuSans-Bold14.pf2
-loadfont $prefix/fonts/fonts/euro.pf2
-loadfont $prefix/fonts/fonts/unicode.pf2
+loadfont $prefix/fonts/euro.pf2
+loadfont $prefix/fonts/unicode.pf2
 font=unicode
 
 search --no-floppy --fs-uuid --set=root %%UUIDROOT%%

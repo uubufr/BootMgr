@@ -18,7 +18,10 @@
 # Set_Root_User: Set Root password
 # Set_User: Set User password
 
-
+### TODO ###
+# la locale
+# on reprend les images qui fonctionnent, on essaiera manuellement de les modifier:
+# for i in $(ls); do convert $i -colorspace srgb -fuzz 20% -fill "rgb(0,0,0)" -opaque 'rgb(116,123,209)' $i; done
 
 # Function: Next_Id
 # Description: ensure each entry have a new, unique id
