@@ -7,12 +7,14 @@ insmod ext2
 insmod png
 insmod gfxterm
 
-loadfont $prefix/themes/ascii.pf2
-loadfont $prefix/themes/DejaVuSans10.pf2
-loadfont $prefix/themes/DejaVuSans12.pf2
-loadfont $prefix/themes/DejaVuSans-Bold14.pf2
-loadfont $prefix/fonts/euro.pf2
-loadfont $prefix/fonts/unicode.pf2
+
+
+loadfont $prefix/fonts/ascii.pf2
+loadfont $prefix/fonts/DejaVuSans10.pf2
+loadfont $prefix/fonts/DejaVuSans12.pf2
+loadfont $prefix/fonts/DejaVuSans-Bold14.pf2
+loadfont $prefix/fonts/fonts/euro.pf2
+loadfont $prefix/fonts/fonts/unicode.pf2
 font=unicode
 
 set root=%%GRUBROOT%%

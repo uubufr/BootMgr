@@ -50,16 +50,24 @@ function Set_Kernels() {
     sed -i -e "s/%%KRESCUE%%/$KRESCUE/g" $1
 }
 
-# Function: Get_OS
+# Funtion: Get_OS
 # Description: get linux distrib name
-# Args:
-#   $1: grub.cfg path
+# Args: None
 function Get_OS() {
     [ -r /etc/ubuntu-release ] && OS=ubuntu
     [ -r /etc/debian-release ] && OS=debian
     [ -r /etc/centos-release ] && OS=centos
     [ -r /etc/fedora-release ] && OS=fedora
-    
+    echo $OS
+fi
+
+
+# Function: Set_OS
+# Description: get linux distrib name
+# Args:
+#   $1: grub.cfg path
+function Set_OS() {
+    OS=$(Get_OS)
     sed -i "s/%%OS%%/$OS/g" $1
 }
 
@@ -109,8 +117,9 @@ function Install_BootMgr() {
  [ -r /etc/BootMgr/grub.template ] || cp grub.template /etc/BootMgr/
  [ -r /etc/BootMgr/theme.template ] || cp theme.template /etc/BootMgr/
  [ -d /etc/BootMgr/themes ] || cp -r themes /etc/BootMgr/
- [ -d /boot/grub2/themes/BootMgr ] || mkdir /boot/grub2/themes/BootMgr
- 
+ [ -d /boot/efi/EFI/$(Get_OS)/themes ] || mkdir /boot/efi/EFI/$(Get_OS)/themes
+ [ -d /boot/efi/EFI/$(Get_OS)/themes/BootMgr ] || mkdir /boot/efi/EFI/$(Get_OS)/themes/BootMgr
+ cp BootMgr/fonts/* /boot/efi/EFI/$(Get_OS)/fonts/
 }
 
 ### We only run as root ###
@@ -193,7 +202,7 @@ sed -i "s/%%STYLE%%/$BOOTMGR_STYLE/g" /tmp/grub.cfg.tmp
 [ "$BOOTMGR_BOXCOLOR" ] || BOOTMGR_BOXCOLOR="116 123 209"
 
 THEMEDIR=$(echo $BOOTMGR_BOXCOLOR | tr \  \- )
-[ -d /boot/grub2/themes/BootMgr/$THEMEDIR ] || mkdir /boot/grub2/themes/BootMgr/$THEMEDIR
+[ -d /boot/efi/EFI/$(Get_OS)/themes/BootMgr/$THEMEDIR ] || mkdir /boot/efi/EFI/$(Get_OS)/themes/BootMgr/$THEMEDIR
 mkdir /tmp/BootMgr/
 read -r R G B <<< $(echo $BOOTMGR_BOXCOLOR)
 for image in $(ls /etc/BootMgr/themes/template/); do
@@ -203,8 +212,8 @@ done
 sed -i -e "s/%%THEME%%/$THEMEDIR/g" /tmp/theme.txt.tmp
 
 ### install theme ###
-cp /tmp/BootMgr/* /boot/grub2/themes/BootMgr/$THEMEDIR/
-cp /tmp/theme.txt.tmp /boot/grub2/themes/BootMgr/theme.txt
+cp /tmp/BootMgr/* /boot/efi/EFI/$(Get_OS)/themes/BootMgr/$THEMEDIR/
+cp /tmp/theme.txt.tmp /boot/efi/EFI/$(Get_OS)/themes/BootMgr/theme.txt
 
 
 ### Windows ###
