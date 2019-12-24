@@ -15,7 +15,6 @@ loadfont $prefix/fonts/fonts/euro.pf2
 loadfont $prefix/fonts/fonts/unicode.pf2
 font=unicode
 
-set root=%%GRUBROOT%%
 search --no-floppy --fs-uuid --set=root %%UUIDROOT%%
 export root
 

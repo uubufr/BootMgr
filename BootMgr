@@ -161,8 +161,7 @@ Set_Kernels /tmp/grub.cfg.tmp
 GRUBPART=$(mount -l | grep "/boot "); GRUBPART=${GRUBPART%% *}
 GRUBUUID=$(lsblk -o uuid $GRUBPART | tail -1)
 
-sed -i -e "s/%%GRUBROOT%%/UUID=$GRUBUUID/g" /tmp/grub.cfg.tmp
-sed -i -e "s/%%UUIDROOT%%/UUID=$GRUBUUID/g" /tmp/grub.cfg.tmp
+sed -i -e "s/%%UUIDROOT%%/$GRUBUUID/g" /tmp/grub.cfg.tmp
 
 ### Linux Root HD ###
 ROOTPART=$(mount -l | grep "/ "); ROOTPART=${ROOTPART%% *}
