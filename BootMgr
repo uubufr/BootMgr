@@ -99,13 +99,17 @@ function Is_Installed() {
 }
 
 function Install_BootMgr() {
+ if [ "$(rpm -qa ImageMagick)" == "" ]; then
+    echo "You must install ImageMagick, do you want install it now? [y/N]"; read answer
+    if [ "${answer^^}" == "Y" ]; then dnf install ImageMagick; fi
+ fi
  [ -d /etc/BootMgr ] || mkdir /etc/BootMgr
  [ -r /etc/BootMgr/BootMgr_.conf ] || cp BootMgr_.conf /etc/BootMgr/
  [ -r /etc/BootMgr/grub.template ] || cp grub.template /etc/BootMgr/
  [ -r /etc/BootMgr/theme.template ] || cp theme.template /etc/BootMgr/
  [ -d /etc/BootMgr/themes ] || cp -r themes /etc/BootMgr/
  [ -d /boot/grub2/themes/BootMgr ] || mkdir /boot/grub2/themes/BootMgr
- # copier les icons
+ 
 }
 
 ### We only run as root ###
