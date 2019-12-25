@@ -5,4 +5,4 @@ Subkey-Length: 4096
 Name-Real: GRUB Signing Modules
 Name-Email: root@localhost
 Expire-Date: 0
-Passphrase: %%PASS%%
+Passphrase: 

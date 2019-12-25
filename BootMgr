@@ -275,17 +275,18 @@ mv /tmp/grub.cfg.tmp /boot/efi/EFI/$(Get_OS)/grub.cfg
 if [ "$BOOTMGR_PASS" ]; then
     SPASS=$BOOTMGR_PASS
 else
-    SPASS=$(openssl rand -base64 32)
+    SPASS=$(dd if=/dev/random bs=32 count=1 2>/dev/null | sha256sum -b | sed 's/ .*//')
 fi
 if [ ! "$BOOTMGR_KEY" ]; then
-    sed -i -e "s/%%PASS%%/$SPASS/g" /etc/BootMgr/security/genkey
+    sed -i -e "s|^Passphrase:*$|Passphrase: $SPASS|g" /etc/BootMgr/security/genkey
     gpg --full-generate-key --batch /etc/BootMgr/security/genkey
 fi
 echo $SPASS > /dev/shm/passphrase
 
 SKEY=$(gpg --list-keys "GRUB Signing Modules" | grep -v "[pub|uid]" | grep -v "^$" | head -1 | awk '{print $1}')
+
 sed -i -e "s/^BOOTMGR_KEY=*$/BOOTMGR_KEY=$SKEY/"g /etc/BootMgr/BootMgr_.conf
-sed -i -e "s/^BOOTMGR_PASS=*$/BOOTMGR_PASS=$PASS/"g /etc/BootMgr/BootMgr_.conf
+sed -i -e "s|^BOOTMGR_PASS=*$|BOOTMGR_PASS=$SPASS|"g /etc/BootMgr/BootMgr_.conf
 
 for TBS in $(find /boot -name "*.cfg" -or -name "*.mod" -or -name "vmlinuz*" -or -name "initramfs*" -or -name "grubenv"); do
     if [ -r $TBS.sig ]; then
