@@ -1,4 +1,5 @@
 set check_signatures=%%SIGN%%
+trust --skip-sig BootMgr.gpg
 insmod all_video
 insmod part_msdos
 insmod part_gpt
@@ -57,7 +58,7 @@ if [ "$KLAST" ]; then
 fi
 
 if [ "$KPREV" ]; then
- menuentry "Fedora $KPREV (previous kernel)" --class latest --class %%OS%% --class gnu-linux --unrestricted --id=2 {
+ menuentry "Fedora $KPREV (previous kernel)" --class latest --class %%OS%% --class gnu-linux --users superusers --id=2 {
   linuxefi /vmlinuz-$KPREV root=$HDROOT $OPTIONS
   initrdefi /initramfs-$KPREV.img
  }

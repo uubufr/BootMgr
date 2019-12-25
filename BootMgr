@@ -43,12 +43,12 @@ function Set_Kernels() {
     KPREV=""
     KRESCUE=""
     
-    for KERNEL in $(ls -1tc /boot/vmlinuz-* | grep -v rescue | head -3); do
+    for KERNEL in $(ls -1tc /boot/vmlinuz-* | grep -v rescue | grep -v ".sig" | head -3); do
         [ "$KLAST" ] && [ ! "$KPREV" ] && KPREV=$(basename $KERNEL)
         [ "$KLAST" ] || KLAST=$(basename $KERNEL)
     done
     
-    KRESCUE=$(basename $(ls -1tc /boot/vmlinuz-* | grep rescue))
+    KRESCUE=$(basename $(ls -1tc /boot/vmlinuz-* | grep rescue | grep -v ".sig"))
     sed -i -e "s/%%KLAST%%/${KLAST#vmlinuz-}/g" $1
     sed -i -e "s/%%KPREV%%/${KPREV#vmlinuz-}/g" $1
     sed -i -e "s/%%KRESCUE%%/${KRESCUE#vmlinuz-}/g" $1
@@ -270,6 +270,8 @@ fi
 ### Install grub.cfg ###
 mv /boot/efi/EFI/$(Get_OS)/grub.cfg /boot/efi/EFI/$(Get_OS)/grub.cfg-$(date '+%Y-%M-%d')
 mv /tmp/grub.cfg.tmp /boot/efi/EFI/$(Get_OS)/grub.cfg
+[ -r /boot/efi/EFI/$(Get_OS)/grub.cfg.sig ] && rm /boot/efi/EFI/$(Get_OS)/grub.cfg.sig
+[ -r /boot/efi/EFI/$(Get_OS)/themes/BootMgr/theme.txt.sig ] && rm /boot/efi/EFI/$(Get_OS)/themes/BootMgr/theme.txt.sig
 
 ### Signing Modules ###
 if [ "$BOOTMGR_PASS" ]; then
@@ -278,7 +280,7 @@ else
     SPASS=$(dd if=/dev/random bs=32 count=1 2>/dev/null | sha256sum -b | sed 's/ .*//')
 fi
 if [ ! "$BOOTMGR_KEY" ]; then
-    sed -i -e "s|^Passphrase:*$|Passphrase: $SPASS|g" /etc/BootMgr/security/genkey
+    sed -i -e "s|^Passphrase:.*$|Passphrase: $SPASS|g" /etc/BootMgr/security/genkey
     gpg --full-generate-key --batch /etc/BootMgr/security/genkey
 fi
 echo $SPASS > /dev/shm/passphrase
@@ -288,9 +290,9 @@ SKEY=$(gpg --list-keys "GRUB Signing Modules" | grep -v "[pub|uid]" | grep -v "^
 sed -i -e "s/^BOOTMGR_KEY=*$/BOOTMGR_KEY=$SKEY/"g /etc/BootMgr/BootMgr_.conf
 sed -i -e "s|^BOOTMGR_PASS=*$|BOOTMGR_PASS=$SPASS|"g /etc/BootMgr/BootMgr_.conf
 
-for TBS in $(find /boot -name "*.cfg" -or -name "*.mod" -or -name "vmlinuz*" -or -name "initramfs*" -or -name "grubenv"); do
+for TBS in $(find /boot -name "*.cfg" -or -name "*.mo" -or -name "vmlinuz*" -or -name "initramfs*" -or -name "grubenv" -or -name "theme.txt" -or -name "*.png" -or -name "*.pf2" | grep -v ".sig"); do
     if [ -r $TBS.sig ]; then
-        pgp --verify --default-key $SKEY --passphrase-file /dev/shm/passphrase $TBS.sig $TBS 2>/dev/null
+        gpg --verify --default-key $SKEY --passphrase-file /dev/shm/passphrase $TBS.sig $TBS 2>/dev/null
         if [ $? -ne 0 ]; then
             echo "Error, $TBS signature incorrect!"
         fi
@@ -298,6 +300,7 @@ for TBS in $(find /boot -name "*.cfg" -or -name "*.mod" -or -name "vmlinuz*" -or
         gpg --pinentry-mode loopback --default-key $SKEY --detach-sign --passphrase-file /dev/shm/passphrase $TBS
     fi
 done
+gpg --export --default-key $SKEY --passphrase-file /dev/shm/passphrase -o /boot/efi/EFI/fedora/BootMgr.gpg
 shred /dev/shm/passphrase
 
 ### Suppression des fichiers templates ###
