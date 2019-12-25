@@ -291,9 +291,10 @@ for TBS in $(find /boot -name "*.cfg" -or -name "*.mod" -or -name "vmlinuz*" -or
         pgp --verify --default-key $SKEY --passphrase-file /dev/shm/passphrase $TBS.sig $TBS 2>/dev/null
         if [ $? -ne 0 ]; then
             echo "Error, $TBS signature incorrect!"
-        else
-            gpg --pinentry-mode loopback --default-key $SKEY --detach-sign --passphrase-file /dev/shm/passphrase $TBS
         fi
+    else
+        gpg --pinentry-mode loopback --default-key $SKEY --detach-sign --passphrase-file /dev/shm/passphrase $TBS
+    fi
 done
 shred /dev/shm/passphrase
 
