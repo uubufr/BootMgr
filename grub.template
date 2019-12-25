@@ -1,4 +1,4 @@
-%%SIGN%%
+set check_signatures=%%SIGN%%
 insmod all_video
 insmod part_msdos
 insmod part_gpt
@@ -100,14 +100,14 @@ submenu "Accès Administratif (restreint)" --class recovery --users superusers -
 
 }
 
-#menuentry "Windows" --class windows --class useless --users %%WITHUSER%% --id=10 {
-#  insmod part_gpt
-#  insmod fat
-#  insmod ntfs
-#  parttool ${root} hidden-
-#  search --no-floppy --fs-uuid --set=root %%WINROOTID%%
-#  chainloader /EFI/Microsoft/Boot/bootmgfw.efi
-#}
+##menuentry "Windows" --class windows --class useless --users %%WITHUSER%% --id=10 {
+##  insmod part_gpt
+##  insmod fat
+##  insmod ntfs
+##  parttool ${root} hidden-
+##  search --no-floppy --fs-uuid --set=root %%WINROOTID%%
+##  chainloader /EFI/Microsoft/Boot/bootmgfw.efi
+##}
 
 menuentry "Redémarrer" --class reboot --unrestricted --id=11 {
  reboot

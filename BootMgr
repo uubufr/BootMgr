@@ -21,7 +21,8 @@
 ### TODO ###
 # la locale
 # on reprend les images qui fonctionnent, on essaiera manuellement de les modifier:
-# for i in $(ls); do convert $i -colorspace srgb -fuzz 20% -fill "rgb(0,0,0)" -opaque 'rgb(116,123,209)' $i; done
+# for i in $(ls); do convert $i -colorspace srgb -fuzz 20% -fill "rgb(255,0,0)" -opaque 'rgb(116,123,209)' $i; done
+# for i in $(ls); do convert $i -colorspace srgba -fuzz 20% -fill "srgba(255,0,0)" -opaque 'srgba(116,123,209)' $i; done
 
 # Function: Next_Id
 # Description: ensure each entry have a new, unique id
@@ -142,6 +143,18 @@ if [ "$(Is_Installed)" == "0" ]; then
     fi
 fi
 
+### Windows Root ID ###
+function Get_Win_BootId() {
+    for disk in $(ls /dev/disk/by-path/ ); do
+        EFIPART=$(blkid /dev/disk/by-path/$disk | grep "EFI system partition")
+        [ "$EFIPART" ] && break
+    done
+    if [ "$EFIPART" ]; then
+        EFIPART=${EFIPART##* UUID=}; EFIPART=${EFIPART%% TYPE=*}
+        echo $EFIPART
+    fi
+}
+
 ### Copying templates ###
 [ -r /tmp/grub.cfg.tmp ] && rm /tmp/grub.cfg.tmp
 cp /etc/BootMgr/grub.template /tmp/grub.cfg.tmp
@@ -218,25 +231,71 @@ sed -i -e "s/%%THEME%%/$THEMEDIR/g" /tmp/theme.txt.tmp
 rm -rf /boot/efi/EFI/$(Get_OS)/themes/BootMgr/*
 mkdir -p /boot/efi/EFI/$(Get_OS)/themes/BootMgr/{$THEMEDIR,background}
 cp /tmp/BootMgr/* /boot/efi/EFI/$(Get_OS)/themes/BootMgr/$THEMEDIR/
-cp /tmp/theme.txt.tmp /boot/efi/EFI/$(Get_OS)/themes/BootMgr/theme.txt
+mv /tmp/theme.txt.tmp /boot/efi/EFI/$(Get_OS)/themes/BootMgr/theme.txt
 cp -r /etc/BootMgr/icons /boot/efi/EFI/$(Get_OS)/themes/BootMgr/
 cp -r /etc/BootMgr/themes/background/background.png /boot/efi/EFI/$(Get_OS)/themes/BootMgr/background
 
 
 ### Windows ###
+if [ "${BOOTMGR_WINDOWS^^}" == "YES" ]; then
+    if [ "$BOOTMGR_WINBOOT" ]; then
+        blkid --uuid $BOOTMGR_WINBOOT 2>/dev/null 1>/dev/null
+        if [ $? -ne 0 ]; then
+            echo "UUID disk: $BOOTMGR_WINBOOT not detected"
+            WID=$(Get_Win_BootId)
+        else
+            WID=$BOOTMGR_WINBOOT
+        fi
+    else
+        WID=$(Get_Win_BootId)
+    fi
 
-
-### Windows Root ID ###
-
+    if [ "$WID" == "" ]; then
+        echo "Windows part not found, ignoring"
+    else
+        sed -i -e "s/^##\(.*)$/\1/g" /tmp/grub.cfg.tmp
+        sed -i -e "s/%%WINROOTID%%/$WID/g" /tmp/grub.cfg.tmp
+        sed -i -e "s/^BOOTMGR_WINBOOT=*/BOOTMGR_WINBOOT=$WID/g" /tmp/grub.cfg.tmp
+    fi
+fi
 
 ### Signature ###
+if [ "${BOOTMGR_SIGN^^}" == YES ]; then
+    sed -i -e "s/%%SIGN%%/enforce/g" /tmp/grub.cfg.tmp
+else
+    sed -i -e "s/%%SIGN%%/no/g" /tmp/grub.cfg.tmp
+fi
 
 ### Install grub.cfg ###
 mv /boot/efi/EFI/$(Get_OS)/grub.cfg /boot/efi/EFI/$(Get_OS)/grub.cfg-$(date '+%Y-%M-%d')
 mv /tmp/grub.cfg.tmp /boot/efi/EFI/$(Get_OS)/grub.cfg
 
-### Sign data ###
+### Signing Modules ###
+if [ "$BOOTMGR_PASS" ]; then
+    SPASS=$BOOTMGR_PASS
+else
+    SPASS=$(openssl rand -base64 32)
+fi
+if [ ! "$BOOTMGR_KEY" ]; then
+    sed -i -e "s/%%PASS%%/$SPASS/g" /etc/BootMgr/security/genkey
+    gpg --full-generate-key --batch /etc/BootMgr/security/genkey
+fi
+echo $SPASS > /dev/shm/passphrase
+
+SKEY=$(gpg --list-keys "GRUB Signing Modules" | grep -v "[pub|uid]" | grep -v "^$" | head -1 | awk '{print $1}')
+sed -i -e "s/^BOOTMGR_KEY=*$/BOOTMGR_KEY=$SKEY/"g /etc/BootMgr/BootMgr_.conf
+sed -i -e "s/^BOOTMGR_PASS=*$/BOOTMGR_PASS=$PASS/"g /etc/BootMgr/BootMgr_.conf
+
+for TBS in $(find /boot -name "*.cfg" -or -name "*.mod" -or -name "vmlinuz*" -or -name "initramfs*" -or -name "grubenv"); do
+    if [ -r $TBS.sig ]; then
+        pgp --verify --default-key $SKEY --passphrase-file /dev/shm/passphrase $TBS.sig $TBS 2>/dev/null
+        if [ $? -ne 0 ]; then
+            echo "Error, $TBS signature incorrect!"
+        else
+            gpg --pinentry-mode loopback --default-key $SKEY --detach-sign --passphrase-file /dev/shm/passphrase $TBS
+        fi
+done
+shred /dev/shm/passphrase
 
 ### Suppression des fichiers templates ###
-rm /tmp/theme.txt.tmp
 rm -rf /tmp/BootMgr
