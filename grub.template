@@ -52,7 +52,7 @@ export KRESCUE
 
 if [ "$KLAST" ]; then
  menuentry "Fedora $KLAST" --class default --class %%OS%% --class gnu-linux --unrestricted --id=1 {
-  linuxefi /vmlinuz-$KLAST root=$HDROOT $OPTIONS rd.driver.blacklist=nouveau
+  linuxefi /vmlinuz-$KLAST root=$HDROOT $OPTIONS
   initrdefi /initramfs-$KLAST.img
  }
 fi
