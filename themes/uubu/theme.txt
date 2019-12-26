@@ -61,4 +61,3 @@ terminal-font: "Gnu Unifont Mono Regular 16"
 
   text = "@TIMEOUT_NOTIFICATION_LONG@"
 }
-
