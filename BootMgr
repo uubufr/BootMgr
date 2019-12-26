@@ -194,12 +194,10 @@ function Gen_Cfg() {
     ### Lang and locale ###
     [ "$BOOTMGR_LANG" ] || BOOTMGR_LANG=en_US
     sed -i "s/%%LANG%%/$BOOTMGR_LANG/g" /tmp/grub.cfg.tmp
-    [ ! -d /boot/efi/EFI/$(Get_OS)/locale ] || mkdir /boot/efi/EFI/$(Get_OS)/locale
+    [ -d /boot/efi/EFI/$(Get_OS)/locale ] || mkdir /boot/efi/EFI/$(Get_OS)/locale
     rm /boot/efi/EFI/$(Get_OS)/locale/*
-    if [ -d /usr/share/locale/$BOOTMGR_LANG ]; then
-        cp /usr/share/locale/$BOOTMGR_LANG/LC_MESSAGES/grub.mo /boot/efi/EFI/$(Get_OS)/locale/
-    elif [ -d /usr/share/locale/${BOOTMGL_LANG%%_*} ]; then
-        cp /usr/share/locale/${BOOTMGR_LANG%%_*}/LC_MESSAGES/grub.mo /boot/efi/EFI/$(Get_OS)/locale/
+    if [ -d /usr/share/locale/${BOOTMGR_LANG%%_*} ]; then
+        cp /usr/share/locale/${BOOTMGR_LANG%%_*}/LC_MESSAGES/grub.mo /boot/efi/EFI/$(Get_OS)/locale/${BOOTMGR_LANG%%_*}.mo
     else
         echo "unable to find locale $BOOTMGR_LANG, please install manually"
     fi
