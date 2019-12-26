@@ -11,13 +11,13 @@ Features:
 - Install theme
 - Sign modules
 
-How to:
+## How to:
 
 First, install it:
 
     ./BootMgr install
 
-Next review /etc/BootMgr_.conf
+Next review /etc/BootMgr/BootMgr_.conf
 
 then test:
 
