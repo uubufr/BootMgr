@@ -153,7 +153,7 @@ function Uninstall_BootMgr() {
 
 function Set_Theme() {
     if [ -d /var/lib/BootMgr/themes/$1 ]; then
-        set -i -e "/^BOOTMGR_THEME=.*$/BOOTMGR_THEME=\"$1\"" /etc/BootMgr/BootMgr_.conf
+        sed -i -e "s/^BOOTMGR_THEME=.*$/BOOTMGR_THEME=\"$1\"/" /etc/BootMgr/BootMgr_.conf
         echo 0
     else
         echo 1
@@ -161,6 +161,7 @@ function Set_Theme() {
 }
 
 function Gen_Cfg() {
+    . /etc/BootMgr/BootMgr_.conf
     ### Copying templates ###
     [ -r /tmp/grub.cfg.tmp ] && rm /tmp/grub.cfg.tmp
     cp /etc/BootMgr/grub.template /tmp/grub.cfg.tmp
@@ -233,9 +234,9 @@ function Gen_Cfg() {
         if [ "$WID" == "" ]; then
             echo "Windows not found, ignoring"
         else
-            sed -i -e "s/^##\(.*)$/\1/g" /tmp/grub.cfg.tmp
+            sed -i -e "s/^##\(.*\)$/\1/g" /tmp/grub.cfg.tmp
             sed -i -e "s/%%WINROOTID%%/$WID/g" /tmp/grub.cfg.tmp
-            sed -i -e "s/^BOOTMGR_WINBOOT=.*$/BOOTMGR_WINBOOT=$WID/g" /tmp/grub.cfg.tmp
+            sed -i -e "s/^BOOTMGR_WINBOOT=.*$/BOOTMGR_WINBOOT=$WID/g" /etc/BootMgr/BootMgr_.conf
         fi
     fi
 
@@ -323,7 +324,7 @@ case "$1" in
         Uninstall_BootMgr
         ;;
     "theme")
-        if [ "$(Set_Theme)" == "0" ]; then
+        if [ "$(Set_Theme $2)" == "0" ]; then
             Gen_Cfg
         else
             echo "Error, unable to find theme: $2"
@@ -332,7 +333,6 @@ case "$1" in
     "rekey")
         Remove_Sig
         Remove_Gpg
-        . /etc/BootMgr/BootMgr_.conf
         Gen_Cfg
         ;;
     "test")
