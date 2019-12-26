@@ -113,10 +113,6 @@ function Is_Installed() {
 }
 
 function Install_BootMgr() {
- if [ "$(rpm -qa ImageMagick)" == "" ]; then
-    echo "You must install ImageMagick, do you want install it now? [y/N]"; read answer
-    if [ "${answer^^}" == "Y" ]; then dnf install ImageMagick; fi
- fi
  [ -d /etc/BootMgr ] || mkdir /etc/BootMgr
  [ -r /etc/BootMgr/BootMgr_.conf ] || cp BootMgr_.conf /etc/BootMgr/
  [ -r /etc/BootMgr/grub.template ] || cp grub.template /etc/BootMgr/
@@ -205,7 +201,7 @@ sed -i "s/%%STYLE%%/$BOOTMGR_STYLE/g" /tmp/grub.cfg.tmp
 ### install theme ###
 if [ -d /etc/BootMgr/themes/$BOOTMGR_THEME ]; then
     rm -rf /boot/efi/EFI/$(Get_OS)/themes/BootMgr/*
-    cp /etc/BootMgr/themes/$BOOTMGR_THEME/* /boot/efi/EFI/$(Get_OS)/themes/BootMgr/*
+    cp /etc/BootMgr/themes/$BOOTMGR_THEME/* /boot/efi/EFI/$(Get_OS)/themes/BootMgr/
 else
     echo "Error, unable to find theme $BOOTMGR_THEME in /etc/BootMgr/themes/"
 fi
