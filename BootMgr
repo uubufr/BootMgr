@@ -306,7 +306,7 @@ if [  "$(id -u)" != "0" ]; then
     exit -1
 fi
 
-if [ "$(Is_Installed)" == "0" ]; then
+if [ "$(Is_Installed)" == "0" ] && [ "$1" != "install" ]; then
     echo "You must first install BootMgr before doing anything"
     exit -1
 fi
