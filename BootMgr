@@ -118,8 +118,7 @@ function Install_BootMgr() {
  [ -r /etc/BootMgr/grub.template ] || cp grub.template /etc/BootMgr/
  [ -d /etc/BootMgr/themes ] || cp -r themes /etc/BootMgr/
  [ -d /boot/efi/EFI/$(Get_OS)/themes ] || mkdir /boot/efi/EFI/$(Get_OS)/themes
- [ -d /boot/efi/EFI/$(Get_OS)/themes/BootMgr ] || mkdir /boot/efi/EFI/$(Get_OS)/themes/BootMgr
- [ -d /etc/BootMgr/icons ] || cp -r icons /etc/BootMgr
+ [ -d /boot/efi/EFI/$(Get_OS)/themes ] || mkdir /boot/efi/EFI/$(Get_OS)/themes
  [ -d /etc/BootMgr/security ] || cp -r security /etc/BootMgr
  cp fonts/* /boot/efi/EFI/$(Get_OS)/fonts/
 }
@@ -200,8 +199,8 @@ sed -i "s/%%STYLE%%/$BOOTMGR_STYLE/g" /tmp/grub.cfg.tmp
 
 ### install theme ###
 if [ -d /etc/BootMgr/themes/$BOOTMGR_THEME ]; then
-    rm -rf /boot/efi/EFI/$(Get_OS)/themes/BootMgr/*
-    cp /etc/BootMgr/themes/$BOOTMGR_THEME/* /boot/efi/EFI/$(Get_OS)/themes/BootMgr/
+    rm -rf /boot/efi/EFI/$(Get_OS)/themes/*
+    cp /etc/BootMgr/themes/$BOOTMGR_THEME/* /boot/efi/EFI/$(Get_OS)/themes/
 else
     echo "Error, unable to find theme $BOOTMGR_THEME in /etc/BootMgr/themes/"
 fi
@@ -241,7 +240,7 @@ fi
 mv /boot/efi/EFI/$(Get_OS)/grub.cfg /boot/efi/EFI/$(Get_OS)/grub.cfg-$(date '+%Y-%M-%d')
 mv /tmp/grub.cfg.tmp /boot/efi/EFI/$(Get_OS)/grub.cfg
 [ -r /boot/efi/EFI/$(Get_OS)/grub.cfg.sig ] && rm /boot/efi/EFI/$(Get_OS)/grub.cfg.sig
-[ -r /boot/efi/EFI/$(Get_OS)/themes/BootMgr/theme.txt.sig ] && rm /boot/efi/EFI/$(Get_OS)/themes/BootMgr/theme.txt.sig
+[ -r /boot/efi/EFI/$(Get_OS)/themes/theme.txt.sig ] && rm /boot/efi/EFI/$(Get_OS)/themes/theme.txt.sig
 
 ### Signing Modules ###
 if [ "$BOOTMGR_PASS" ]; then
