@@ -21,12 +21,6 @@
 # Is_Installed: Detect if BootMgr is installed
 # Install_BootMgr: Install BootMgr
 
-### TODO ###
-# la locale
-# on reprend les images qui fonctionnent, on essaiera manuellement de les modifier:
-# for i in $(ls); do convert $i -colorspace srgb -fuzz 20% -fill "rgb(255,0,0)" -opaque 'rgb(116,123,209)' $i; done
-# for i in $(ls); do convert $i -colorspace srgba -fuzz 20% -fill "srgba(255,0,0)" -opaque 'srgba(116,123,209)' $i; done
-
 # Function: Set_Kernels
 # Description: Get Kernel list and update grub.cfg
 # Args:
@@ -119,6 +113,8 @@ function Get_Win_BootId() {
 function Is_Installed() {
  OK=1
  [ -d /etc/BootMgr ] || OK=0
+ [ -d /var/lib/BootMgr ] || OK=0
+ [ -d /var/lib/BootMgr/themes ] || OK=0
  echo $OK
 }
 
@@ -126,17 +122,27 @@ function Is_Installed() {
 # Description: Install BootMgr
 # Args: None
 function Install_BootMgr() {
- [ -d /etc/BootMgr ] || mkdir /etc/BootMgr
- [ -r /etc/BootMgr/BootMgr_.conf ] || cp BootMgr_.conf /etc/BootMgr/
- [ -r /etc/BootMgr/grub.template ] || cp grub.template /etc/BootMgr/
- cp -r themes/* /var/lib/BootMgr/themes/
- [ -d /boot/efi/EFI/$(Get_OS)/themes ] || mkdir /boot/efi/EFI/$(Get_OS)/themes
- [ -d /etc/BootMgr/security ] || cp -r security /etc/BootMgr
- cp fonts/* /boot/efi/EFI/$(Get_OS)/fonts/
+    # /etc/BootMgr
+    [ -d /etc/BootMgr ] || mkdir /etc/BootMgr
+    [ -r /etc/BootMgr/BootMgr_.conf ] || cp BootMgr_.conf /etc/BootMgr/
+    [ -r /etc/BootMgr/grub.template ] || cp grub.template /etc/BootMgr/
+    [ -d /etc/BootMgr/security ] || cp -r security /etc/BootMgr
+    chown -R root:root  /etc/BootMgr; chmod -R 600 /etc/BootMgr
+ 
+    # /var/lib/BootMgr
+    [ -d /var/lib/BootMgr/ ] || mkdir -p /var/lib/BootMgr/themes
+    cp -r themes/* /var/lib/BootMgr/themes/
+
+    # grub dir and fonts
+    [ -d /boot/efi/EFI/$(Get_OS)/themes ] || mkdir /boot/efi/EFI/$(Get_OS)/themes
+    cp fonts/* /boot/efi/EFI/$(Get_OS)/fonts/
 }
 
 function Uninstall_BootMgr() {
-
+    rm -rf /etc/BootMgr
+    rm -rf /var/lib/BootMgr
+    rm /usr/local/bin/BootMgr
+    echo "BootMgr removed, but not grub config and theme, please run grub2-mkconfig if you want to remove grub config"
 }
 
 function Set_Theme() {
@@ -179,9 +185,18 @@ function Gen_Cfg() {
     [ "$BOOTMGR_RESCUEOPTS" ] || BOOTMGR_RESCUEOPTS="ro single $CURRENTCMDLINE"
     sed -i -e "s|%%KERNELRESCUE%%|$BOOTMGR_RESCUEOPTS|g" /tmp/grub.cfg.tmp
 
-    ### Lang ###
+    ### Lang and locale ###
     [ "$BOOTMGR_LANG" ] || BOOTMGR_LANG=en_US
     sed -i "s/%%LANG%%/$BOOTMGR_LANG/g" /tmp/grub.cfg.tmp
+    [ ! -d /boot/efi/EFI/$(Get_OS)/locale ] || mkdir /boot/efi/EFI/$(Get_OS)/locale
+    rm /boot/efi/EFI/$(Get_OS)/locale/*
+    if [ -d /usr/share/locale/$BOOTMGR_LANG ]; then
+        cp /usr/share/locale/$BOOTMGR_LANG/LC_MESSAGES/grub.mo /boot/efi/EFI/$(Get_OS)/locale/
+    elif [ -d /usr/share/locale/${BOOTMGL_LANG%%_*} ]; then
+        cp /usr/share/locale/${BOOTMGR_LANG%%_*}/LC_MESSAGES/grub.mo /boot/efi/EFI/$(Get_OS)/locale/
+    else
+        echo "unable to find locale $BOOTMGR_LANG, please install manually"
+    fi
 
     ### MENU ###
     [ "$BOOTMGR_TIMEOUT" ] || BOOTMGR_TIMEOUT=5
@@ -272,11 +287,18 @@ function Gen_Cfg() {
 }
 
 function Remove_Sig() {
-
+    for i in $(find /boot -name "*.sig"); do
+        rm $i
+    done
+    echo "Warning: .sig files removed"
 }
 
 function Remove_Gpg() {
-
+    gpg --delete-secret-key $BOOTMGR_KEY
+    gpg --delete-key $BOOTMGR_KEY
+    sed -i -e 's/^BOOTMGR_KEY=.*$/BOOTMGR_KEY=/' /etc/BootMgr/BootMgr_.conf
+    sed -i -e 's/^BOOTMGR_PASS=.*$/BOOTMGR_PASS=/' /etc/BootMgr/BootMgr_.conf
+    echo "Warning: gpg key deleted"
 }
 ### We only run as root ###
 if [  "$(id -u)" != "0" ]; then
