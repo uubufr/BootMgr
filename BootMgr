@@ -73,7 +73,7 @@ function Set_Root_User() {
         BOOTMGR_ROOTUSR="password_pbkdf2 root $BOOTMGR_ROOTUSR"
     fi
     sed -i "s/%%ROOTUSR%%/$BOOTMGR_ROOTUSR/g" $1
-    sed -i -e "s/^BOOTMGR_ROOTUSR=*$/BOOTMGR_ROOTUSR=\"$BOOTMGR_ROOTUSR\"/" /etc/BootMgr/BootMgr_.conf
+    sed -i -e "s/^BOOTMGR_ROOTUSR=.*$/BOOTMGR_ROOTUSR=\"$BOOTMGR_ROOTUSR\"/" /etc/BootMgr/BootMgr_.conf
 }
 
 # Function: Set_User
@@ -89,7 +89,7 @@ function Set_User() {
         BOOTMGR_SUPERUSER="password_pbkdf2 $NEWUSER $BOOTMGR_SUPERUSER"
     fi
     sed -i "s/%%USER%%/$BOOTMGR_SUPERUSER/g" $1
-    sed -i -e "s/^BOOTMGR_SUPERUSER=*$/BOOTMGR_SUPERUSER=\"$BOOTMGR_SUPERUSER\"/" /etc/BootMgr/BootMgr_.conf
+    sed -i -e "s/^BOOTMGR_SUPERUSER=.*$/BOOTMGR_SUPERUSER=\"$BOOTMGR_SUPERUSER\"/" /etc/BootMgr/BootMgr_.conf
     sed -i -e "s/%%WITHUSER%%/$NEWUSER/g" $1
 }
 
@@ -195,7 +195,6 @@ function Gen_Cfg() {
     [ "$BOOTMGR_LANG" ] || BOOTMGR_LANG=en_US
     sed -i "s/%%LANG%%/$BOOTMGR_LANG/g" /tmp/grub.cfg.tmp
     [ -d /boot/efi/EFI/$(Get_OS)/locale ] || mkdir /boot/efi/EFI/$(Get_OS)/locale
-    rm /boot/efi/EFI/$(Get_OS)/locale/*
     if [ -d /usr/share/locale/${BOOTMGR_LANG%%_*} ]; then
         cp /usr/share/locale/${BOOTMGR_LANG%%_*}/LC_MESSAGES/grub.mo /boot/efi/EFI/$(Get_OS)/locale/${BOOTMGR_LANG%%_*}.mo
     else
@@ -236,7 +235,7 @@ function Gen_Cfg() {
         else
             sed -i -e "s/^##\(.*)$/\1/g" /tmp/grub.cfg.tmp
             sed -i -e "s/%%WINROOTID%%/$WID/g" /tmp/grub.cfg.tmp
-            sed -i -e "s/^BOOTMGR_WINBOOT=*/BOOTMGR_WINBOOT=$WID/g" /tmp/grub.cfg.tmp
+            sed -i -e "s/^BOOTMGR_WINBOOT=.*$/BOOTMGR_WINBOOT=$WID/g" /tmp/grub.cfg.tmp
         fi
     fi
 
@@ -272,8 +271,8 @@ function Gen_Cfg() {
     
     SKEY=$(gpg --list-keys "GRUB Signing Modules" | grep -v "[pub|uid]" | grep -v "^$" | head -1 | awk '{print $1}')
     
-    sed -i -e "s/^BOOTMGR_KEY=*$/BOOTMGR_KEY=$SKEY/"g /etc/BootMgr/BootMgr_.conf
-    sed -i -e "s|^BOOTMGR_PASS=*$|BOOTMGR_PASS=$SPASS|"g /etc/BootMgr/BootMgr_.conf
+    sed -i -e "s/^BOOTMGR_KEY=.*$/BOOTMGR_KEY=$SKEY/"g /etc/BootMgr/BootMgr_.conf
+    sed -i -e "s|^BOOTMGR_PASS=.*$|BOOTMGR_PASS=$SPASS|"g /etc/BootMgr/BootMgr_.conf
     
     for TBS in $(find /boot -name "*.cfg" -or -name "*.mo" -or -name "vmlinuz*" -or -name "initramfs*" -or -name "grubenv" -or -name "theme.txt" -or -name "*.png" -or -name "*.jpg" -or -name "*.pf2" | grep -v ".sig"); do
         if [ -r $TBS.sig ]; then
