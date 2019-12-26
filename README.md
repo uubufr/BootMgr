@@ -26,7 +26,7 @@ then test:
 
     BootMgr test
 
-This will create bootmgr.cfg and let grub.cfg untouched. Restart, and in grub prompt use configfile in order to load bootmgr.cfg. If all is ok, you can install in with:
+This create bootmgr.cfg and don't change grub.cfg. Restart, and in grub prompt use 'configfile' to load bootmgr.cfg. If all is ok, you can install in with:
 
     BootMgr update
 

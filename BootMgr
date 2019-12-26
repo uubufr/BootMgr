@@ -252,7 +252,7 @@ function Gen_Cfg() {
         DEST=bootmgr.cfg
     else
         DEST=grub.cfg
-        mv /boot/efi/EFI/$(Get_OS)/grub.cfg /boot/efi/EFI/$(Get_OS)/grub.cfg-$(date '+%Y-%M-%d')
+        mv /boot/efi/EFI/$(Get_OS)/grub.cfg /boot/efi/EFI/$(Get_OS)/grub.cfg-$(date '+%Y-%m-%d')
     fi
     mv /tmp/grub.cfg.tmp /boot/efi/EFI/$(Get_OS)/$DEST
     [ -r /boot/efi/EFI/$(Get_OS)/$DEST.sig ] && rm /boot/efi/EFI/$(Get_OS)/$DEST.sig
