@@ -1,6 +1,8 @@
 # BootMgr
 Script for generate simple Grub2 configuration
 
+Warning: Only tested on Fedora 30 and 31!
+
 Features:
 
 - Add Current kernel, and previous kernel
@@ -33,3 +35,5 @@ This create bootmgr.cfg and don't change grub.cfg. Restart, and in grub prompt u
 You can install themes in /var/lib/BootMgr/themes/ and select theme with:
 
     BootMgr theme <theme name>
+
+Note: I don't provide any support
