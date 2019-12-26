@@ -314,7 +314,7 @@ if [ "$(Is_Installed)" == "0" ] && [ "$1" != "install" ]; then
     exit -1
 fi
 
-. /etc/BootMgr/BootMgr_.conf
+[ -r /etc/BootMgr/BootMgr_.conf ] && . /etc/BootMgr/BootMgr_.conf
 case "$1" in
     "install")
         Install_BootMgr
@@ -332,6 +332,7 @@ case "$1" in
     "rekey")
         Remove_Sig
         Remove_Gpg
+        . /etc/BootMgr/BootMgr_.conf
         Gen_Cfg
         ;;
     "test")
