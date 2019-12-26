@@ -24,7 +24,7 @@ set lang=%%LANG%%
 insmod gettext
 set gfxmode=auto
 terminal_output gfxterm
-set theme=$prefix/themes/BootMgr/theme.txt
+set theme=$prefix/themes/theme.txt
 export theme
 set timeout_style=%%STYLE%%
 set timeout=%%TIMEOUT%%
@@ -64,7 +64,7 @@ if [ "$KPREV" ]; then
  }
 fi
 
-submenu "Accès Administratif (restreint)" --class recovery --users superusers --id=3 {
+submenu "Admin Access (restricted)" --class recovery --users superusers --id=3 {
 
  if [ "$KLAST" ]; then
   menuentry "Fedora $KLAST (recovery mode)" --class default --class %%OS%% --class gnu-linux --unrestricted --id=4 {
@@ -91,11 +91,11 @@ submenu "Accès Administratif (restreint)" --class recovery --users superusers -
   fwsetup
  }
 
- menuentry "Redémarrer" --class reboot --unrestricted --id=8 {
+ menuentry "Restart" --class reboot --unrestricted --id=8 {
   reboot
  }
 
- menuentry "Arrêter" --class poweroff --unrestricted --id=9 {
+ menuentry "Halt" --class poweroff --unrestricted --id=9 {
   halt
  }
 
@@ -110,10 +110,10 @@ submenu "Accès Administratif (restreint)" --class recovery --users superusers -
 ##  chainloader /EFI/Microsoft/Boot/bootmgfw.efi
 ##}
 
-menuentry "Redémarrer" --class reboot --unrestricted --id=11 {
+menuentry "Restart" --class reboot --unrestricted --id=11 {
  reboot
 }
 
-menuentry "Arrêter" --class poweroff --unrestricted --id=12 {
+menuentry "Halt" --class poweroff --unrestricted --id=12 {
  halt
 }

@@ -12,27 +12,20 @@
 # Warning: only tested on Fedora!
 #
 # Functions:
-# Next_Id: ensure each entry have a new, unique id
 # Set_Kernels: Get Kernel list and update grub.cfg
-# Get_OS: get linux distrib name
+# Get_OS: Get linux distrib name
+# Set_OS: Set linux distrib name
 # Set_Root_User: Set Root password
 # Set_User: Set User password
+# Get_Win_BootId: Get Windows EFI part
+# Is_Installed: Detect if BootMgr is installed
+# Install_BootMgr: Install BootMgr
 
 ### TODO ###
 # la locale
 # on reprend les images qui fonctionnent, on essaiera manuellement de les modifier:
 # for i in $(ls); do convert $i -colorspace srgb -fuzz 20% -fill "rgb(255,0,0)" -opaque 'rgb(116,123,209)' $i; done
 # for i in $(ls); do convert $i -colorspace srgba -fuzz 20% -fill "srgba(255,0,0)" -opaque 'srgba(116,123,209)' $i; done
-
-# Function: Next_Id
-# Description: ensure each entry have a new, unique id
-# Args:
-#   $1: CurID
-# on conserve le awk:
-#     awk -i inplace -v ID=$(( $2 + 1 )) 'NR==1,/%%ID%%/{sub(/%%ID%%/, ID)} 1' /tmp/grub.cfg.tmp
-function Next_Id() {
-    echo $(($1 + 1))
-}
 
 # Function: Set_Kernels
 # Description: Get Kernel list and update grub.cfg
@@ -55,7 +48,7 @@ function Set_Kernels() {
 }
 
 # Funtion: Get_OS
-# Description: get linux distrib name
+# Description: Get linux distrib name
 # Args: None
 function Get_OS() {
     [ -r /etc/ubuntu-release ] && OS=ubuntu
@@ -66,7 +59,7 @@ function Get_OS() {
 }
 
 # Function: Set_OS
-# Description: get linux distrib name
+# Description: Set linux distrib name
 # Args:
 #   $1: grub.cfg path
 function Set_OS() {
@@ -106,40 +99,9 @@ function Set_User() {
     sed -i -e "s/%%WITHUSER%%/$NEWUSER/g" $1
 }
 
-function Is_Installed() {
- OK=1
- [ -d /etc/BootMgr ] || OK=0
- echo $OK
-}
-
-function Install_BootMgr() {
- [ -d /etc/BootMgr ] || mkdir /etc/BootMgr
- [ -r /etc/BootMgr/BootMgr_.conf ] || cp BootMgr_.conf /etc/BootMgr/
- [ -r /etc/BootMgr/grub.template ] || cp grub.template /etc/BootMgr/
- [ -d /etc/BootMgr/themes ] || cp -r themes /etc/BootMgr/
- [ -d /boot/efi/EFI/$(Get_OS)/themes ] || mkdir /boot/efi/EFI/$(Get_OS)/themes
- [ -d /boot/efi/EFI/$(Get_OS)/themes ] || mkdir /boot/efi/EFI/$(Get_OS)/themes
- [ -d /etc/BootMgr/security ] || cp -r security /etc/BootMgr
- cp fonts/* /boot/efi/EFI/$(Get_OS)/fonts/
-}
-
-### We only run as root ###
-if [  "$(id -u)" != "0" ]; then
-    echo "this script must be run as root!"
-    exit -1
-fi
-
-### Checking if installed ###
-if [ "$(Is_Installed)" == "0" ]; then
-    echo "BootMgr seem not installed, do you want to install it [y/N]?"; read ANSWER
-    if [ "${ANSWER^^}" == "Y" ]; then
-        Install_BootMgr
-    else
-        exit -1
-    fi
-fi
-
-### Windows Root ID ###
+# Function: Get_Win_BootId
+# Description: Get Windows EFI part
+# Args: None
 function Get_Win_BootId() {
     for disk in $(ls /dev/disk/by-path/ ); do
         EFIPART=$(blkid /dev/disk/by-path/$disk | grep "EFI system partition")
@@ -151,123 +113,214 @@ function Get_Win_BootId() {
     fi
 }
 
-echo "test de dir $@"
-### Copying templates ###
-[ -r /tmp/grub.cfg.tmp ] && rm /tmp/grub.cfg.tmp
-cp /etc/BootMgr/grub.template /tmp/grub.cfg.tmp
+# Function: Is_Installed
+# Description: Detect if BootMgr is installed
+# Args: None
+function Is_Installed() {
+ OK=1
+ [ -d /etc/BootMgr ] || OK=0
+ echo $OK
+}
 
-### Starting changes:
-. /etc/BootMgr/BootMgr_.conf
+# Function: Install_BootMgr
+# Description: Install BootMgr
+# Args: None
+function Install_BootMgr() {
+ [ -d /etc/BootMgr ] || mkdir /etc/BootMgr
+ [ -r /etc/BootMgr/BootMgr_.conf ] || cp BootMgr_.conf /etc/BootMgr/
+ [ -r /etc/BootMgr/grub.template ] || cp grub.template /etc/BootMgr/
+ cp -r themes/* /var/lib/BootMgr/themes/
+ [ -d /boot/efi/EFI/$(Get_OS)/themes ] || mkdir /boot/efi/EFI/$(Get_OS)/themes
+ [ -d /etc/BootMgr/security ] || cp -r security /etc/BootMgr
+ cp fonts/* /boot/efi/EFI/$(Get_OS)/fonts/
+}
 
-### Setting current OS (for icons):
-Set_OS /tmp/grub.cfg.tmp
+function Uninstall_BootMgr() {
 
-### Setting Users Passwords:
-Set_Root_User /tmp/grub.cfg.tmp
-Set_User /tmp/grub.cfg.tmp
+}
 
-Set_Kernels /tmp/grub.cfg.tmp
+function Set_Theme() {
+    if [ -d /var/lib/BootMgr/themes/$1 ]; then
+        set -i -e "/^BOOTMGR_THEME=.*$/BOOTMGR_THEME=\"$1\"" /etc/BootMgr/BootMgr_.conf
+        echo 0
+    else
+        echo 1
+    fi
+}
 
-### Root part ###:
-GRUBPART=$(mount -l | grep "/boot "); GRUBPART=${GRUBPART%% *}
-GRUBUUID=$(lsblk -o uuid $GRUBPART | tail -1)
+function Gen_Cfg() {
+    ### Copying templates ###
+    [ -r /tmp/grub.cfg.tmp ] && rm /tmp/grub.cfg.tmp
+    cp /etc/BootMgr/grub.template /tmp/grub.cfg.tmp
 
-sed -i -e "s/%%UUIDROOT%%/$GRUBUUID/g" /tmp/grub.cfg.tmp
+    ### Setting current OS (for icons):
+    Set_OS /tmp/grub.cfg.tmp
 
-### Linux Root HD ###
-ROOTPART=$(mount -l | grep "/ "); ROOTPART=${ROOTPART%% *}
-sed -i -e "s|%%HDROOT%%|$ROOTPART|g" /tmp/grub.cfg.tmp
+    ### Setting Users Passwords:
+    Set_Root_User /tmp/grub.cfg.tmp
+    Set_User /tmp/grub.cfg.tmp
 
-### Linux Options ###
-CURRENTCMDLINE=$(cat /proc/cmdline); CURRENTCMDLINE=${CURRENTCMDLINE#* }
-[ "$BOOTMGR_KERNELOPTS" ] || BOOTMGR_KERNELOPTS=$CURRENTCMDLINE
-sed -i -e "s|%%KERNELOPTS%%|$BOOTMGR_KERNELOPTS|g" /tmp/grub.cfg.tmp
-[ "$BOOTMGR_RESCUEOPTS" ] || BOOTMGR_RESCUEOPTS="ro single $CURRENTCMDLINE"
-sed -i -e "s|%%KERNELRESCUE%%|$BOOTMGR_RESCUEOPTS|g" /tmp/grub.cfg.tmp
+    ### Setting Kernels:
+    Set_Kernels /tmp/grub.cfg.tmp
 
-### Lang ###
-[ "$BOOTMGR_LANG" ] || BOOTMGR_LANG=en_US
-sed -i "s/%%LANG%%/$BOOTMGR_LANG/g" /tmp/grub.cfg.tmp
+    ### Root ###:
+    GRUBPART=$(mount -l | grep "/boot "); GRUBPART=${GRUBPART%% *}
+    GRUBUUID=$(lsblk -o uuid $GRUBPART | tail -1)
+    sed -i -e "s/%%UUIDROOT%%/$GRUBUUID/g" /tmp/grub.cfg.tmp
 
-### MENU ###
-[ "$BOOTMGR_TIMEOUT" ] || BOOTMGR_TIMEOUT=5
-sed -i "s/%%TIMEOUT%%/$BOOTMGR_TIMEOUT/g" /tmp/grub.cfg.tmp
+    ### Linux / part ###
+    ROOTPART=$(mount -l | grep "/ "); ROOTPART=${ROOTPART%% *}
+    sed -i -e "s|%%HDROOT%%|$ROOTPART|g" /tmp/grub.cfg.tmp
 
-[ "$BOOTMGR_STYLE" ] || BOOTMGR_STYLE="menu"
-sed -i "s/%%STYLE%%/$BOOTMGR_STYLE/g" /tmp/grub.cfg.tmp
+    ### Linux Options ###
+    CURRENTCMDLINE=$(cat /proc/cmdline); CURRENTCMDLINE=${CURRENTCMDLINE#* }
+    [ "$BOOTMGR_KERNELOPTS" ] || BOOTMGR_KERNELOPTS=$CURRENTCMDLINE
+    sed -i -e "s|%%KERNELOPTS%%|$BOOTMGR_KERNELOPTS|g" /tmp/grub.cfg.tmp
+    [ "$BOOTMGR_RESCUEOPTS" ] || BOOTMGR_RESCUEOPTS="ro single $CURRENTCMDLINE"
+    sed -i -e "s|%%KERNELRESCUE%%|$BOOTMGR_RESCUEOPTS|g" /tmp/grub.cfg.tmp
+
+    ### Lang ###
+    [ "$BOOTMGR_LANG" ] || BOOTMGR_LANG=en_US
+    sed -i "s/%%LANG%%/$BOOTMGR_LANG/g" /tmp/grub.cfg.tmp
+
+    ### MENU ###
+    [ "$BOOTMGR_TIMEOUT" ] || BOOTMGR_TIMEOUT=5
+    sed -i "s/%%TIMEOUT%%/$BOOTMGR_TIMEOUT/g" /tmp/grub.cfg.tmp
+    [ "$BOOTMGR_STYLE" ] || BOOTMGR_STYLE="menu"
+    sed -i "s/%%STYLE%%/$BOOTMGR_STYLE/g" /tmp/grub.cfg.tmp
 
 
-### install theme ###
-if [ -d /etc/BootMgr/themes/$BOOTMGR_THEME ]; then
-    rm -rf /boot/efi/EFI/$(Get_OS)/themes/*
-    cp /etc/BootMgr/themes/$BOOTMGR_THEME/* /boot/efi/EFI/$(Get_OS)/themes/
-else
-    echo "Error, unable to find theme $BOOTMGR_THEME in /etc/BootMgr/themes/"
-fi
+    ### Theme ###
+    if [ -d /var/lib/BootMgr/themes/$BOOTMGR_THEME ]; then
+        rm -rf /boot/efi/EFI/$(Get_OS)/themes/*
+        cp -r /var/lib/BootMgr/themes/$BOOTMGR_THEME/* /boot/efi/EFI/$(Get_OS)/themes/
+    else
+        echo "Error, unable to find theme $BOOTMGR_THEME"
+    fi
 
-
-### Windows ###
-if [ "${BOOTMGR_WINDOWS^^}" == "YES" ]; then
-    if [ "$BOOTMGR_WINBOOT" ]; then
-        blkid --uuid $BOOTMGR_WINBOOT 2>/dev/null 1>/dev/null
-        if [ $? -ne 0 ]; then
-            echo "UUID disk: $BOOTMGR_WINBOOT not detected"
-            WID=$(Get_Win_BootId)
+    ### Windows ###
+    if [ "${BOOTMGR_WINDOWS^^}" == "YES" ]; then
+        if [ "$BOOTMGR_WINBOOT" ]; then
+            blkid --uuid $BOOTMGR_WINBOOT 2>/dev/null 1>/dev/null
+            if [ $? -ne 0 ]; then
+                echo "UUID disk: $BOOTMGR_WINBOOT not detected"
+                WID=$(Get_Win_BootId)
+            else
+                WID=$BOOTMGR_WINBOOT
+            fi
         else
-            WID=$BOOTMGR_WINBOOT
+            WID=$(Get_Win_BootId)
         fi
-    else
-        WID=$(Get_Win_BootId)
-    fi
 
-    if [ "$WID" == "" ]; then
-        echo "Windows not found, ignoring"
-    else
-        sed -i -e "s/^##\(.*)$/\1/g" /tmp/grub.cfg.tmp
-        sed -i -e "s/%%WINROOTID%%/$WID/g" /tmp/grub.cfg.tmp
-        sed -i -e "s/^BOOTMGR_WINBOOT=*/BOOTMGR_WINBOOT=$WID/g" /tmp/grub.cfg.tmp
-    fi
-fi
-
-### Signature ###
-if [ "${BOOTMGR_SIGN^^}" == YES ]; then
-    sed -i -e "s/%%SIGN%%/enforce/g" /tmp/grub.cfg.tmp
-else
-    sed -i -e "s/%%SIGN%%/no/g" /tmp/grub.cfg.tmp
-fi
-
-### Install grub.cfg ###
-mv /boot/efi/EFI/$(Get_OS)/grub.cfg /boot/efi/EFI/$(Get_OS)/grub.cfg-$(date '+%Y-%M-%d')
-mv /tmp/grub.cfg.tmp /boot/efi/EFI/$(Get_OS)/grub.cfg
-[ -r /boot/efi/EFI/$(Get_OS)/grub.cfg.sig ] && rm /boot/efi/EFI/$(Get_OS)/grub.cfg.sig
-[ -r /boot/efi/EFI/$(Get_OS)/themes/theme.txt.sig ] && rm /boot/efi/EFI/$(Get_OS)/themes/theme.txt.sig
-
-### Signing Modules ###
-if [ "$BOOTMGR_PASS" ]; then
-    SPASS=$BOOTMGR_PASS
-else
-    SPASS=$(dd if=/dev/random bs=32 count=1 2>/dev/null | sha256sum -b | sed 's/ .*//')
-fi
-if [ ! "$BOOTMGR_KEY" ]; then
-    sed -i -e "s|^Passphrase:.*$|Passphrase: $SPASS|g" /etc/BootMgr/security/genkey
-    gpg --full-generate-key --batch /etc/BootMgr/security/genkey
-fi
-echo $SPASS > /dev/shm/passphrase
-
-SKEY=$(gpg --list-keys "GRUB Signing Modules" | grep -v "[pub|uid]" | grep -v "^$" | head -1 | awk '{print $1}')
-
-sed -i -e "s/^BOOTMGR_KEY=*$/BOOTMGR_KEY=$SKEY/"g /etc/BootMgr/BootMgr_.conf
-sed -i -e "s|^BOOTMGR_PASS=*$|BOOTMGR_PASS=$SPASS|"g /etc/BootMgr/BootMgr_.conf
-
-for TBS in $(find /boot -name "*.cfg" -or -name "*.mo" -or -name "vmlinuz*" -or -name "initramfs*" -or -name "grubenv" -or -name "theme.txt" -or -name "*.png" -or -name "*.pf2" | grep -v ".sig"); do
-    if [ -r $TBS.sig ]; then
-        gpg --verify --default-key $SKEY --passphrase-file /dev/shm/passphrase $TBS.sig $TBS 2>/dev/null 1>/dev/null
-        if [ $? -ne 0 ]; then
-            echo "Error, $TBS signature incorrect!"
+        if [ "$WID" == "" ]; then
+            echo "Windows not found, ignoring"
+        else
+            sed -i -e "s/^##\(.*)$/\1/g" /tmp/grub.cfg.tmp
+            sed -i -e "s/%%WINROOTID%%/$WID/g" /tmp/grub.cfg.tmp
+            sed -i -e "s/^BOOTMGR_WINBOOT=*/BOOTMGR_WINBOOT=$WID/g" /tmp/grub.cfg.tmp
         fi
-    else
-        gpg --pinentry-mode loopback --default-key $SKEY --detach-sign --passphrase-file /dev/shm/passphrase $TBS 2>/dev/null 1>/dev/null
     fi
-done
-gpg --export --default-key $SKEY --passphrase-file /dev/shm/passphrase -o /boot/efi/EFI/fedora/BootMgr.gpg 2>/dev/null 1>/dev/null
-shred /dev/shm/passphrase
+
+    ### Signature ###
+    if [ "${BOOTMGR_SIGN^^}" == YES ]; then
+        sed -i -e "s/%%SIGN%%/enforce/g" /tmp/grub.cfg.tmp
+    else
+        sed -i -e "s/%%SIGN%%/no/g" /tmp/grub.cfg.tmp
+    fi
+
+    ### Install grub.cfg ###
+    if [ "$1" == "test" ]; then
+        DEST=bootmgr.cfg
+    else
+        DEST=grub.cfg
+        mv /boot/efi/EFI/$(Get_OS)/grub.cfg /boot/efi/EFI/$(Get_OS)/grub.cfg-$(date '+%Y-%M-%d')
+    fi
+    mv /tmp/grub.cfg.tmp /boot/efi/EFI/$(Get_OS)/$DEST
+    [ -r /boot/efi/EFI/$(Get_OS)/$DEST.sig ] && rm /boot/efi/EFI/$(Get_OS)/$DEST.sig
+    [ -r /boot/efi/EFI/$(Get_OS)/themes/theme.txt.sig ] && rm /boot/efi/EFI/$(Get_OS)/themes/theme.txt.sig
+
+    ### Signing Modules ###
+    if [ "$BOOTMGR_PASS" ]; then
+        SPASS=$BOOTMGR_PASS
+    else
+        SPASS=$(dd if=/dev/random bs=32 count=1 2>/dev/null | sha256sum -b | sed 's/ .*//')
+    fi
+    if [ ! "$BOOTMGR_KEY" ]; then
+        sed -i -e "s|^Passphrase:.*$|Passphrase: $SPASS|g" /etc/BootMgr/security/genkey
+        gpg --full-generate-key --batch /etc/BootMgr/security/genkey
+    fi
+    echo $SPASS > /dev/shm/passphrase
+    
+    SKEY=$(gpg --list-keys "GRUB Signing Modules" | grep -v "[pub|uid]" | grep -v "^$" | head -1 | awk '{print $1}')
+    
+    sed -i -e "s/^BOOTMGR_KEY=*$/BOOTMGR_KEY=$SKEY/"g /etc/BootMgr/BootMgr_.conf
+    sed -i -e "s|^BOOTMGR_PASS=*$|BOOTMGR_PASS=$SPASS|"g /etc/BootMgr/BootMgr_.conf
+    
+    for TBS in $(find /boot -name "*.cfg" -or -name "*.mo" -or -name "vmlinuz*" -or -name "initramfs*" -or -name "grubenv" -or -name "theme.txt" -or -name "*.png" -or -name "*.jpg" -or -name "*.pf2" | grep -v ".sig"); do
+        if [ -r $TBS.sig ]; then
+            gpg --verify --default-key $SKEY --passphrase-file /dev/shm/passphrase $TBS.sig $TBS 2>/dev/null 1>/dev/null
+            if [ $? -ne 0 ]; then
+                echo "Error, $TBS signature incorrect!"
+            fi
+        else
+            gpg --pinentry-mode loopback --default-key $SKEY --detach-sign --passphrase-file /dev/shm/passphrase $TBS 2>/dev/null 1>/dev/null
+        fi
+    done
+    [ -r /boot/efi/EFI/fedora/BootMgr.gpg ] && rm /boot/efi/EFI/fedora/BootMgr.gpg
+    gpg --export --default-key $SKEY --passphrase-file /dev/shm/passphrase -o /boot/efi/EFI/fedora/BootMgr.gpg 2>/dev/null 1>/dev/null
+    shred /dev/shm/passphrase
+}
+
+function Remove_Sig() {
+
+}
+
+function Remove_Gpg() {
+
+}
+### We only run as root ###
+if [  "$(id -u)" != "0" ]; then
+    echo "this script must be run as root!"
+    exit -1
+fi
+
+if [ "$(Is_Installed)" == "0" ]; then
+    echo "You must first install BootMgr before doing anything"
+    exit -1
+fi
+
+. /etc/BootMgr/BootMgr_.conf
+case "$1" in
+    "install")
+        Install_BootMgr
+        ;;
+    "uninstall")
+        Uninstall_BootMgr
+        ;;
+    "theme")
+        if [ "$(Set_Theme)" == "0" ]; then
+            Gen_Cfg
+        else
+            echo "Error, unable to find theme: $2"
+        fi
+        ;;
+    "rekey")
+        Remove_Sig
+        Remove_Gpg
+        Gen_Cfg
+        ;;
+    "test")
+        Gen_Cfg test
+        ;;
+    "update")
+        Gen_Cfg
+        ;;
+    *)
+        echo "Usage: BootMgr [install|uninstall|theme|rekey|test|update]"
+        echo "install|uninstall: install|remove BootMgr"
+        echo "theme <theme name>: select and install existing theme (themes are under /var/lib/BootMgr/"
+        echo "rekey: used for regenerate gpg key and resign"
+        echo "test: generate bootmgr.cfg instead of grub.cfg"
+        echo "update: regenerate grub.cfg"
+        ;;
+esac
