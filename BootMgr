@@ -122,6 +122,12 @@ function Is_Installed() {
 # Description: Install BootMgr
 # Args: None
 function Install_BootMgr() {
+
+    # BootMgr
+    cp BootMgr /usr/local/bin/
+    chown root:root /usr/local/bin/BootMgr
+    chmod 700 /usr/local/bin/BootMgr
+    
     # /etc/BootMgr
     [ -d /etc/BootMgr ] || mkdir /etc/BootMgr
     [ -r /etc/BootMgr/BootMgr_.conf ] || cp BootMgr_.conf /etc/BootMgr/
