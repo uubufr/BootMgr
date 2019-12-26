@@ -15,6 +15,9 @@ Features:
 
 First, install it:
 
+    git clone https://github.com/uubufr/BootMgr
+    cd BootMgr
+    chmod u+x BootMgr
     ./BootMgr install
 
 Next review /etc/BootMgr/BootMgr_.conf
@@ -27,3 +30,6 @@ This will create bootmgr.cfg and let grub.cfg untouched. Restart, and in grub pr
 
     BootMgr update
 
+You can install themes in /var/lib/BootMgr/themes/ and select theme with:
+
+    BootMgr theme <theme name>
