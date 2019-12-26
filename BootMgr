@@ -113,7 +113,6 @@ function Is_Installed() {
 }
 
 function Install_BootMgr() {
-echo "test de dir $@"
  if [ "$(rpm -qa ImageMagick)" == "" ]; then
     echo "You must install ImageMagick, do you want install it now? [y/N]"; read answer
     if [ "${answer^^}" == "Y" ]; then dnf install ImageMagick; fi
@@ -121,7 +120,6 @@ echo "test de dir $@"
  [ -d /etc/BootMgr ] || mkdir /etc/BootMgr
  [ -r /etc/BootMgr/BootMgr_.conf ] || cp BootMgr_.conf /etc/BootMgr/
  [ -r /etc/BootMgr/grub.template ] || cp grub.template /etc/BootMgr/
- [ -r /etc/BootMgr/theme.template ] || cp theme.template /etc/BootMgr/
  [ -d /etc/BootMgr/themes ] || cp -r themes /etc/BootMgr/
  [ -d /boot/efi/EFI/$(Get_OS)/themes ] || mkdir /boot/efi/EFI/$(Get_OS)/themes
  [ -d /boot/efi/EFI/$(Get_OS)/themes/BootMgr ] || mkdir /boot/efi/EFI/$(Get_OS)/themes/BootMgr
@@ -158,11 +156,10 @@ function Get_Win_BootId() {
     fi
 }
 
+echo "test de dir $@"
 ### Copying templates ###
 [ -r /tmp/grub.cfg.tmp ] && rm /tmp/grub.cfg.tmp
 cp /etc/BootMgr/grub.template /tmp/grub.cfg.tmp
-[ -r /tmp/theme.txt ] && rm /tmp/theme.txt
-cp /etc/BootMgr/theme.template /tmp/theme.txt.tmp
 
 ### Starting changes:
 . /etc/BootMgr/BootMgr_.conf
@@ -204,39 +201,14 @@ sed -i "s/%%TIMEOUT%%/$BOOTMGR_TIMEOUT/g" /tmp/grub.cfg.tmp
 [ "$BOOTMGR_STYLE" ] || BOOTMGR_STYLE="menu"
 sed -i "s/%%STYLE%%/$BOOTMGR_STYLE/g" /tmp/grub.cfg.tmp
 
-### Background Image ###
-[ "BOOTMGR_BACKGROUND" ] || sed -i "s/%%BACKGROUNDIMG%%//g" /tmp/theme.txt.tmp
-#[ "BACKCOLOR" ] || sed -i -e "s/^desktop-color=*$/desktop-color=\"$BACKCOLOR\"/g" /tmp/theme.txt.tmp
-#[ "TEXTCOLOR" ]
-#[ 
-#message-color: "#aaa"
-#message-bg-color: "#000"
-#text_color = "#000"
-#fg_color = "#aaa"
-#bg_color = "#999"
-#border_color = "#fff"
-
-#title-text: "Uubu.fr Boot Menu"
-### Colors ###
-[ "$BOOTMGR_BOXCOLOR" ] || BOOTMGR_BOXCOLOR="116 123 209"
-
-THEMEDIR=$(echo $BOOTMGR_BOXCOLOR | tr \  \- )
-[ -d /boot/efi/EFI/$(Get_OS)/themes/BootMgr/$THEMEDIR ] || mkdir /boot/efi/EFI/$(Get_OS)/themes/BootMgr/$THEMEDIR
-mkdir /tmp/BootMgr/
-read -r R G B <<< $(echo $BOOTMGR_BOXCOLOR)
-for image in $(ls /etc/BootMgr/themes/template/); do
-    convert /etc/BootMgr/themes/template/$image -colorspace srgb -fuzz 20% -fill "rgb($R,$G,$B)" -opaque 'rgb(0,0,0)' /tmp/BootMgr/$image
-done
-
-sed -i -e "s/%%THEME%%/$THEMEDIR/g" /tmp/theme.txt.tmp
 
 ### install theme ###
-rm -rf /boot/efi/EFI/$(Get_OS)/themes/BootMgr/*
-mkdir -p /boot/efi/EFI/$(Get_OS)/themes/BootMgr/{$THEMEDIR,background}
-cp /tmp/BootMgr/* /boot/efi/EFI/$(Get_OS)/themes/BootMgr/$THEMEDIR/
-mv /tmp/theme.txt.tmp /boot/efi/EFI/$(Get_OS)/themes/BootMgr/theme.txt
-cp -r /etc/BootMgr/icons /boot/efi/EFI/$(Get_OS)/themes/BootMgr/
-cp -r /etc/BootMgr/themes/background/background.png /boot/efi/EFI/$(Get_OS)/themes/BootMgr/background
+if [ -d /etc/BootMgr/themes/$BOOTMGR_THEME ]; then
+    rm -rf /boot/efi/EFI/$(Get_OS)/themes/BootMgr/*
+    cp /etc/BootMgr/themes/$BOOTMGR_THEME/* /boot/efi/EFI/$(Get_OS)/themes/BootMgr/*
+else
+    echo "Error, unable to find theme $BOOTMGR_THEME in /etc/BootMgr/themes/"
+fi
 
 
 ### Windows ###
@@ -254,7 +226,7 @@ if [ "${BOOTMGR_WINDOWS^^}" == "YES" ]; then
     fi
 
     if [ "$WID" == "" ]; then
-        echo "Windows part not found, ignoring"
+        echo "Windows not found, ignoring"
     else
         sed -i -e "s/^##\(.*)$/\1/g" /tmp/grub.cfg.tmp
         sed -i -e "s/%%WINROOTID%%/$WID/g" /tmp/grub.cfg.tmp
@@ -294,16 +266,13 @@ sed -i -e "s|^BOOTMGR_PASS=*$|BOOTMGR_PASS=$SPASS|"g /etc/BootMgr/BootMgr_.conf
 
 for TBS in $(find /boot -name "*.cfg" -or -name "*.mo" -or -name "vmlinuz*" -or -name "initramfs*" -or -name "grubenv" -or -name "theme.txt" -or -name "*.png" -or -name "*.pf2" | grep -v ".sig"); do
     if [ -r $TBS.sig ]; then
-        gpg --verify --default-key $SKEY --passphrase-file /dev/shm/passphrase $TBS.sig $TBS 2>/dev/null
+        gpg --verify --default-key $SKEY --passphrase-file /dev/shm/passphrase $TBS.sig $TBS 2>/dev/null 1>/dev/null
         if [ $? -ne 0 ]; then
             echo "Error, $TBS signature incorrect!"
         fi
     else
-        gpg --pinentry-mode loopback --default-key $SKEY --detach-sign --passphrase-file /dev/shm/passphrase $TBS
+        gpg --pinentry-mode loopback --default-key $SKEY --detach-sign --passphrase-file /dev/shm/passphrase $TBS 2>/dev/null 1>/dev/null
     fi
 done
-gpg --export --default-key $SKEY --passphrase-file /dev/shm/passphrase -o /boot/efi/EFI/fedora/BootMgr.gpg
+gpg --export --default-key $SKEY --passphrase-file /dev/shm/passphrase -o /boot/efi/EFI/fedora/BootMgr.gpg 2>/dev/null 1>/dev/null
 shred /dev/shm/passphrase
-
-### Suppression des fichiers templates ###
-rm -rf /tmp/BootMgr
