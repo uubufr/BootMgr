@@ -285,8 +285,8 @@ function Gen_Cfg() {
             gpg --pinentry-mode loopback --default-key $SKEY --detach-sign --passphrase-file /dev/shm/passphrase $TBS 2>/dev/null 1>/dev/null
         fi
     done
-    [ -r /boot/efi/EFI/fedora/BootMgr.gpg ] && rm /boot/efi/EFI/fedora/BootMgr.gpg
-    gpg --export --default-key $SKEY --passphrase-file /dev/shm/passphrase -o /boot/efi/EFI/fedora/BootMgr.gpg 2>/dev/null 1>/dev/null
+    [ -r /boot/efi/EFI/$(Get_OS)/BootMgr.gpg ] && rm /boot/efi/EFI/$(Get_OS)/BootMgr.gpg
+    gpg --export --default-key $SKEY --passphrase-file /dev/shm/passphrase -o /boot/efi/EFI/$(Get_OS)/BootMgr.gpg 2>/dev/null 1>/dev/null
     shred /dev/shm/passphrase
 }
 
@@ -295,6 +295,7 @@ function Remove_Sig() {
         rm $i
     done
     echo "Warning: .sig files removed"
+    rm -rf /boot/efi/EFI/$(Get_OS)/BootMgr.gpg
 }
 
 function Remove_Gpg() {
