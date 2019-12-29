@@ -20,6 +20,10 @@
 # Get_Win_BootId: Get Windows EFI part
 # Is_Installed: Detect if BootMgr is installed
 # Install_BootMgr: Install BootMgr
+# Uninstall_BootMgr: remove BootMgr from the system
+# Gen_Cfg: generate Grub.cfg
+# Remove_Sig: delete .sig files
+# Remove_Gpg: delete gpg key
 
 # Function: Set_Kernels
 # Description: Get Kernel list and update grub.cfg
@@ -144,6 +148,9 @@ function Install_BootMgr() {
     cp fonts/* /boot/efi/EFI/$(Get_OS)/fonts/
 }
 
+# Function: Uninstall_BootMgr
+# Description: remove BootMgr from the system
+# Args: None
 function Uninstall_BootMgr() {
     rm -rf /etc/BootMgr
     rm -rf /var/lib/BootMgr
@@ -160,6 +167,9 @@ function Set_Theme() {
     fi
 }
 
+# Function: Gen_Cfg
+# Description: generate Grub.cfg
+# Args: None
 function Gen_Cfg() {
     . /etc/BootMgr/BootMgr_.conf
     ### Copying templates ###
@@ -290,6 +300,9 @@ function Gen_Cfg() {
     shred /dev/shm/passphrase
 }
 
+# Function: Remove_Sig
+# Description: delete .sig files
+# Args: None
 function Remove_Sig() {
     for i in $(find /boot -name "*.sig"); do
         rm $i
@@ -298,6 +311,9 @@ function Remove_Sig() {
     rm -rf /boot/efi/EFI/$(Get_OS)/BootMgr.gpg
 }
 
+# Function: Remove_Gpg
+# Description: delete gpg key
+# Args: None
 function Remove_Gpg() {
     gpg --delete-secret-key $BOOTMGR_KEY
     gpg --delete-key $BOOTMGR_KEY
@@ -305,6 +321,7 @@ function Remove_Gpg() {
     sed -i -e 's/^BOOTMGR_PASS=.*$/BOOTMGR_PASS=/' /etc/BootMgr/BootMgr_.conf
     echo "Warning: gpg key deleted"
 }
+
 ### We only run as root ###
 if [  "$(id -u)" != "0" ]; then
     echo "this script must be run as root!"
