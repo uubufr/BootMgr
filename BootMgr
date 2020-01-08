@@ -267,6 +267,7 @@ function Gen_Cfg() {
     mv /tmp/grub.cfg.tmp /boot/efi/EFI/$(Get_OS)/$DEST
     [ -r /boot/efi/EFI/$(Get_OS)/$DEST.sig ] && rm /boot/efi/EFI/$(Get_OS)/$DEST.sig
     [ -r /boot/efi/EFI/$(Get_OS)/themes/theme.txt.sig ] && rm /boot/efi/EFI/$(Get_OS)/themes/theme.txt.sig
+    [ -r /boot/efi/EFI/$(Get_OS)/grubenv.sig ] && rm /boot/efi/EFI/$(Get_OS)/grubenv.sig
 
     ### Signing Modules ###
     if [ "$BOOTMGR_PASS" ]; then
@@ -353,6 +354,9 @@ case "$1" in
         Remove_Gpg
         Gen_Cfg
         ;;
+    "resign")
+        Remove_Sig
+        Gen_Cfg
     "test")
         Gen_Cfg test
         ;;
@@ -364,6 +368,7 @@ case "$1" in
         echo "install|uninstall: install|remove BootMgr"
         echo "theme <theme name>: select and install existing theme (themes are under /var/lib/BootMgr/"
         echo "rekey: used for regenerate gpg key and resign"
+        echo "resign: delete all .sig files, then update and resign"
         echo "test: generate bootmgr.cfg instead of grub.cfg"
         echo "update: regenerate grub.cfg"
         ;;
