@@ -357,6 +357,7 @@ case "$1" in
     "resign")
         Remove_Sig
         Gen_Cfg
+        ;;
     "test")
         Gen_Cfg test
         ;;
