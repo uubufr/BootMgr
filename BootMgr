@@ -268,6 +268,7 @@ function Gen_Cfg() {
     [ -r /boot/efi/EFI/$(Get_OS)/$DEST.sig ] && rm /boot/efi/EFI/$(Get_OS)/$DEST.sig
     [ -r /boot/efi/EFI/$(Get_OS)/themes/theme.txt.sig ] && rm /boot/efi/EFI/$(Get_OS)/themes/theme.txt.sig
     [ -r /boot/efi/EFI/$(Get_OS)/grubenv.sig ] && rm /boot/efi/EFI/$(Get_OS)/grubenv.sig
+    [ -r /boot/grub2/grubenv.sig ] && rm /boot/grub2/grubenv.sig
 
     ### Signing Modules ###
     if [ "$BOOTMGR_PASS" ]; then
