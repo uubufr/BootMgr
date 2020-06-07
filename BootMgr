@@ -287,7 +287,7 @@ function Gen_Cfg() {
     sed -i -e "s/^BOOTMGR_KEY=.*$/BOOTMGR_KEY=$SKEY/"g /etc/BootMgr/BootMgr_.conf
     sed -i -e "s|^BOOTMGR_PASS=.*$|BOOTMGR_PASS=$SPASS|"g /etc/BootMgr/BootMgr_.conf
     
-    for TBS in $(find /boot -name "*.cfg" -or -name "*.mo" -or -name "vmlinuz*" -or -name "initramfs*" -or -name "grubenv" -or -name "theme.txt" -or -name "*.png" -or -name "*.jpg" -or -name "*.pf2" | grep -v ".sig"); do
+    for TBS in $(find /boot -name "*.cfg" -or -name "*.mo" -or -name "*.mod" -or -name "vmlinuz*" -or -name "initramfs*" -or -name "grubenv" -or -name "theme.txt" -or -name "*.png" -or -name "*.jpg" -or -name "*.pf2" | grep -v ".sig"); do
         if [ -r $TBS.sig ]; then
             gpg --verify --default-key $SKEY --passphrase-file /dev/shm/passphrase $TBS.sig $TBS 2>/dev/null 1>/dev/null
             if [ $? -ne 0 ]; then
