@@ -1,7 +1,7 @@
 # BootMgr
 Script for generate simple Grub2 configuration
 
-Warning: Only tested on Fedora 30 and 31!
+Warning: Only tested on Fedora 30 to 37!
 
 Features:
 
