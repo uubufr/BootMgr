@@ -41,7 +41,7 @@ function Get_OS() {
 #   $1: grub.cfg path
 function Set_OS() {
     OS=$(Get_OS)
-    sed -i "s/%%OS%%/$OS/g" $1
+    sed -i "s/%%OS%%/$OS/g" "$1"
 }
 
 # Function: Set_Root_User
@@ -55,7 +55,7 @@ function Set_Root_User() {
         BOOTMGR_ROOTUSR=${BOOTMGR_ROOTUSR##* }
         BOOTMGR_ROOTUSR="password_pbkdf2 root $BOOTMGR_ROOTUSR"
     fi
-    sed -i "s/%%ROOTUSR%%/$BOOTMGR_ROOTUSR/g" $1
+    sed -i "s/%%ROOTUSR%%/$BOOTMGR_ROOTUSR/g" "$1"
     sed -i -e "s/^BOOTMGR_ROOTUSR=.*$/BOOTMGR_ROOTUSR=\"$BOOTMGR_ROOTUSR\"/" /etc/BootMgr/BootMgr_.conf
 }
 
@@ -65,15 +65,15 @@ function Set_Root_User() {
 #   $1: grub.cfg path
 function Set_User() {
     if [ ! "$BOOTMGR_SUPERUSER" ]; then
-        echo "Enter UserName"; read NEWUSER;
+        echo "Enter UserName"; read -r NEWUSER;
         echo "Enter password for $NEWUSER user, 2 times:"
         BOOTMGR_SUPERUSER=$(grub2-mkpasswd-pbkdf2 -l 512 -s 2048 -c 2048)
         BOOTMGR_SUPERUSER=${BOOTMGR_SUPERUSER##* }
         BOOTMGR_SUPERUSER="password_pbkdf2 $NEWUSER $BOOTMGR_SUPERUSER"
     fi
-    sed -i "s/%%USER%%/$BOOTMGR_SUPERUSER/g" $1
+    sed -i "s/%%USER%%/$BOOTMGR_SUPERUSER/g" "$1"
     sed -i -e "s/^BOOTMGR_SUPERUSER=.*$/BOOTMGR_SUPERUSER=\"$BOOTMGR_SUPERUSER\"/" /etc/BootMgr/BootMgr_.conf
-    sed -i -e "s/%%WITHUSER%%/$NEWUSER/g" $1
+    sed -i -e "s/%%WITHUSER%%/$NEWUSER/g" "$1"
 }
 
 # Function: Get_Win_BootId
@@ -86,7 +86,7 @@ function Get_Win_BootId() {
     done
     if [ "$EFIPART" ]; then
         EFIPART=${EFIPART##* UUID=}; EFIPART=${EFIPART%% TYPE=*}
-        echo $EFIPART
+        echo "$EFIPART"
     fi
 }
 
@@ -124,6 +124,7 @@ function Install_BootMgr() {
 
     # grub dir and fonts
     [ -d /boot/efi/EFI/$(Get_OS)/themes ] || mkdir /boot/efi/EFI/$(Get_OS)/themes
+    [ -d /boot/efi/EFI/$(Get_OS)/fonts ] || mkdir /boot/efi/EFI/$(Get_OS)/themes
     cp fonts/* /boot/efi/EFI/$(Get_OS)/fonts/
 }
 
@@ -286,15 +287,15 @@ function Remove_Sig() {
         rm $i
     done
     echo "Warning: .sig files removed"
-    rm -rf /boot/efi/EFI/$(Get_OS)/BootMgr.gpg
+    rm -rf /boot/efi/EFI/"$(Get_OS)"/BootMgr.gpg
 }
 
 # Function: Remove_Gpg
 # Description: delete gpg key
 # Args: None
 function Remove_Gpg() {
-    gpg --delete-secret-key $BOOTMGR_KEY
-    gpg --delete-key $BOOTMGR_KEY
+    gpg --delete-secret-key "$BOOTMGR_KEY"
+    gpg --delete-key "$BOOTMGR_KEY"
     sed -i -e 's/^BOOTMGR_KEY=.*$/BOOTMGR_KEY=/' /etc/BootMgr/BootMgr_.conf
     sed -i -e 's/^BOOTMGR_PASS=.*$/BOOTMGR_PASS=/' /etc/BootMgr/BootMgr_.conf
     echo "Warning: gpg key deleted"
@@ -320,7 +321,7 @@ case "$1" in
         Uninstall_BootMgr
         ;;
     "theme")
-        if [ "$(Set_Theme $2)" == "0" ]; then
+        if [ "$(Set_Theme "$2")" == "0" ]; then
             Gen_Cfg
         else
             echo "Error, unable to find theme: $2"
