@@ -12,7 +12,6 @@
 # Warning: only tested on Fedora!
 #
 # Functions:
-# Set_Kernels: Get Kernel list and update grub.cfg
 # Get_OS: Get linux distrib name
 # Set_OS: Set linux distrib name
 # Set_Root_User: Set Root password
@@ -24,26 +23,6 @@
 # Gen_Cfg: generate Grub.cfg
 # Remove_Sig: delete .sig files
 # Remove_Gpg: delete gpg key
-
-# Function: Set_Kernels
-# Description: Get Kernel list and update grub.cfg
-# Args:
-#   $1: grub.cfg path
-function Set_Kernels() {
-    KLAST=""
-    KPREV=""
-    KRESCUE=""
-    
-    for KERNEL in $(ls -1tc /boot/vmlinuz-* | grep -v rescue | grep -v ".sig" | head -3); do
-        [ "$KLAST" ] && [ ! "$KPREV" ] && KPREV=$(basename $KERNEL)
-        [ "$KLAST" ] || KLAST=$(basename $KERNEL)
-    done
-    
-    KRESCUE=$(basename $(ls -1tc /boot/vmlinuz-* | grep rescue | grep -v ".sig"))
-    sed -i -e "s/%%KLAST%%/${KLAST#vmlinuz-}/g" $1
-    sed -i -e "s/%%KPREV%%/${KPREV#vmlinuz-}/g" $1
-    sed -i -e "s/%%KRESCUE%%/${KRESCUE#vmlinuz-}/g" $1
-}
 
 # Funtion: Get_OS
 # Description: Get linux distrib name
@@ -182,9 +161,6 @@ function Gen_Cfg() {
     ### Setting Users Passwords:
     Set_Root_User /tmp/grub.cfg.tmp
     Set_User /tmp/grub.cfg.tmp
-
-    ### Setting Kernels:
-    Set_Kernels /tmp/grub.cfg.tmp
 
     ### Root ###:
     GRUBPART=$(mount -l | grep "/boot "); GRUBPART=${GRUBPART%% *}
