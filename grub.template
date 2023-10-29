@@ -39,9 +39,32 @@ HDROOT=%%HDROOT%%
 OPTIONS="%%KERNELOPTS%%"
 OPTRESCUE="%%KERNELRESCUE%%"
 
-KLAST=%%KLAST%%
-KPREV=%%KPREV%%
-KRESCUE=%%KRESCUE%%
+# find last kernel
+for FKERNEL in ls ($root)/vmlinuz-*.x86_64; do
+  regexp --set FKERN ".*/vmlinuz-([0-9]{1,}.[0-9]{1,}.[0-9]{1,}-[0-9]{1,}.*.x86_64)" $FKERNEL
+  if test -z $KLAST; then
+    KLAST=$FKERN
+  else
+    if test $FKERN -pgt $KLAST ; then
+      KLAST=$FKERN
+      break
+    fi
+  fi
+done
+
+# find previous kernel
+for FKERNEL in ls ($root)/vmlinuz-*.x86_64; do
+  regexp --set FKERN ".*/vmlinuz-([0-9]{1,}.[0-9]{1,}.[0-9]{1,}-[0-9]{1,}.*.x86_64)" $FKERNEL
+  if test $FKERN == $KLAST; then continue; fi
+  if test -z $KPREV; then
+    KPREV=$FKERN
+  else
+    if test $FKERN -pgt $KPREV ; then
+      KPREV=$FKERN
+      break
+    fi
+  fi
+done
 
 export HDROOT
 export OPTIONS
