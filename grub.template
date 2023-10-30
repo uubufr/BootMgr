@@ -41,30 +41,81 @@ OPTRESCUE="%%KERNELRESCUE%%"
 
 # find last kernel
 for FKERNEL in ls ($root)/vmlinuz-*.x86_64; do
+  unset KCURRENTVERSION
+  unset KCURRENTMAJOR
+  unset KCURRENTMINOR
+  unset KCURRENTPATCH
+
   regexp --set FKERN ".*/vmlinuz-([0-9]{1,}.[0-9]{1,}.[0-9]{1,}-[0-9]{1,}.*.x86_64)" $FKERNEL
   if test -z $KLAST; then
     KLAST=$FKERN
+    regexp --set KLASTVERSION ".*/vmlinuz-([0-9]{1,2}).*.x86_64" $FKERNEL
+    regexp --set KLASTMAJOR ".*/vmlinuz-[0-9]{1,2}.([0-9]{1,2}).*.x86_64" $FKERNEL
+    regexp --set KLASTMINOR ".*/vmlinuz-[0-9]{1,2}.[0-9]{1,2}.([0-9]{1,2}).*.x86_64" $FKERNEL
+    regexp --set KLASTPATCH ".*/vmlinuz-[0-9]{1,2}.[0-9]{1,2}.[0-9]{1,2}.([0-9]{3,}).*.x86_64" $FKERNEL
   else
-    if test $FKERN -pgt $KLAST ; then
+    regexp --set KCURRENTVERSION ".*/vmlinuz-([0-9]{1,2}).*.x86_64" $FKERNEL
+    if test $KCURRENTVERSION -gt $KLASTVERSION; then
       KLAST=$FKERN
-      break
+      continue
+    fi
+    regexp --set KCURRENTMAJOR ".*/vmlinuz-[0-9]{1,2}.([0-9]{1,2}).*.x86_64" $FKERNEL
+    if test $KCURRENTMAJOR -gt $KLASTMAJOR; then
+      KLAST=$FKERN
+      continue
+    fi
+    regexp --set KCURRENTMINOR ".*/vmlinuz-[0-9]{1,2}.[0-9]{1,2}.([0-9]{1,2}).*.x86_64" $FKERNEL
+    if test $KCURRENTMINOR -gt $KLASTMINOR; then
+      KLAST=$FKERN
+      continue
+    fi
+    regexp --set KCURRENTPATCH ".*/vmlinuz-[0-9]{1,2}.[0-9]{1,2}.[0-9]{1,2}.([0-9]{3,}).*.x86_64" $FKERNEL
+    if test $KCURRENTPATCH -gt $KLASTPATCH; then
+      KLAST=$FKERN
+      continue
     fi
   fi
 done
 
 # find previous kernel
 for FKERNEL in ls ($root)/vmlinuz-*.x86_64; do
+  unset KCURRENTVERSION
+  unset KCURRENTMAJOR
+  unset KCURRENTMINOR
+  unset KCURRENTPATCH
+
   regexp --set FKERN ".*/vmlinuz-([0-9]{1,}.[0-9]{1,}.[0-9]{1,}-[0-9]{1,}.*.x86_64)" $FKERNEL
   if test $FKERN == $KLAST; then continue; fi
   if test -z $KPREV; then
     KPREV=$FKERN
+    regexp --set KLASTVERSION ".*/vmlinuz-([0-9]{1,2}).*.x86_64" $FKERNEL
+    regexp --set KLASTMAJOR ".*/vmlinuz-[0-9]{1,2}.([0-9]{1,2}).*.x86_64" $FKERNEL
+    regexp --set KLASTMINOR ".*/vmlinuz-[0-9]{1,2}.[0-9]{1,2}.([0-9]{1,2}).*.x86_64" $FKERNEL
+    regexp --set KLASTPATCH ".*/vmlinuz-[0-9]{1,2}.[0-9]{1,2}.[0-9]{1,2}.([0-9]{3,}).*.x86_64" $FKERNEL
   else
-    if test $FKERN -pgt $KPREV ; then
+    regexp --set KCURRENTVERSION ".*/vmlinuz-([0-9]{1,2}).*.x86_64" $FKERNEL
+    if test $KCURRENTVERSION -gt $KLASTVERSION; then
       KPREV=$FKERN
-      break
+      continue
+    fi
+    regexp --set KCURRENTMAJOR ".*/vmlinuz-[0-9]{1,2}.([0-9]{1,2}).*.x86_64" $FKERNEL
+    if test $KCURRENTMAJOR -gt $KLASTMAJOR; then
+      KPREV=$FKERN
+      continue
+    fi
+    regexp --set KCURRENTMINOR ".*/vmlinuz-[0-9]{1,2}.[0-9]{1,2}.([0-9]{1,2}).*.x86_64" $FKERNEL
+    if test $KCURRENTMINOR -gt $KLASTMINOR; then
+      KPREV=$FKERN
+      continue
+    fi
+    regexp --set KCURRENTPATCH ".*/vmlinuz-[0-9]{1,2}.[0-9]{1,2}.[0-9]{1,2}.([0-9]{3,}).*.x86_64" $FKERNEL
+    if test $KCURRENTPATCH -gt $KLASTPATCH; then
+      KPREV=$FKERN
+      continue
     fi
   fi
 done
+
 
 export HDROOT
 export OPTIONS
