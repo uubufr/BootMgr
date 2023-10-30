@@ -5,7 +5,7 @@ Warning: Only tested on Fedora 30 to 37!
 
 Features:
 
-- Add Current kernel, and previous kernel
+- Auto dectect Current and previous Kernel
 - Admin menu for rescue access
 - Add restart - stop - System Setup
 - Add user passwords
