@@ -124,58 +124,77 @@ export KLAST
 export KPREV
 export KRESCUE
 
+IDNUMBER=1
+export IDNUMBER
+
+
 if [ "$KLAST" ]; then
- menuentry "Fedora $KLAST" --class default --class %%OS%% --class gnu-linux --unrestricted --id=1 {
+ menuentry "Fedora $KLAST" --class default --class %%OS%% --class gnu-linux --unrestricted --id=$IDNUMBER {
   linuxefi /vmlinuz-$KLAST root=$HDROOT $OPTIONS
   initrdefi /initramfs-$KLAST.img
  }
+ increment IDNUMBER
 fi
 
 if [ "$KPREV" ]; then
- menuentry "Fedora $KPREV (previous kernel)" --class latest --class %%OS%% --class gnu-linux --users superusers --id=2 {
+ menuentry "Fedora $KPREV (previous kernel)" --class latest --class %%OS%% --class gnu-linux --users superusers --id=$IDNUMBER {
   linuxefi /vmlinuz-$KPREV root=$HDROOT $OPTIONS
   initrdefi /initramfs-$KPREV.img
  }
+ increment IDNUMBER
 fi
 
-submenu "Admin Access (restricted)" --class recovery --users superusers --id=3 {
+submenu "Admin Access (restricted)" --class recovery --users superusers --id=$IDNUMBER {
+
+ increment IDNUMBER
 
  if [ "$KLAST" ]; then
-  menuentry "Fedora $KLAST (recovery mode)" --class default --class %%OS%% --class gnu-linux --unrestricted --id=4 {
+  menuentry "Fedora $KLAST (recovery mode)" --class default --class %%OS%% --class gnu-linux --unrestricted --id=$IDNUMBER {
    linuxefi /vmlinuz-$KLAST root=$HDROOT $OPTRESCUE
    initrdefi /initramfs-$KLAST.img
   }
+  increment IDNUMBER
  fi
 
  if [ "$KPREV" ]; then
-  menuentry "Fedora $KPREV (testing, recovery mode)" --class latest --class %%OS%% --class gnu-linux --unrestricted --id=5 {
+  menuentry "Fedora $KPREV (testing, recovery mode)" --class latest --class %%OS%% --class gnu-linux --unrestricted --id=$IDNUMBER {
    linuxefi /vmlinuz-$KPREV root=$HDROOT $OPTRESCUE
    initrdefi /initramfs-$KPREV.img
   }
+  increment IDNUMBER
  fi
 
- if [ "$KRESCUE" ]; then
-  menuentry "Fedora $KRESCUE (legacy, recovery mode)" --class old --class %%OS%% --class gnu-linux --users unrestricted --id=6 {
-   linuxefi /vmlinuz-$KRESCUE root=$HDROOT $OPTRESCUE
-   initrdefi /initramfs-$KRESCUE.img
-  }
- fi
+ for FRESCUE in ls ($root)/vmlinuz-0-rescue-*; do
+  regexp --set KRESCUE ".*/vmlinuz-0-rescue-([0-9a-f]{32})" $FRESCUE
+  if test "$FRESCUE" == "($root)/vmlinuz-0-rescue-$KRESCUE.sig"; then continue; fi
+  if test -e ($root)/vmlinuz-0-rescue-$KRESCUE; then
+   menuentry "Fedora $KRESCUE (legacy, recovery mode)" --class old --class fedora --class gnu-linux --users unrestricted --id=$IDNUMBER {
+    linuxefi /vmlinuz-0-rescue-$KRESCUE root=$HDROOT $OPTRESCUE
+    initrdefi /initramfs-0-rescue-$KRESCUE.img
+   }
+   increment IDNUMBER
+  fi
+  unset KRESCUE
+ done
 
- menuentry "System Setup" --class UEFI --unrestricted --id=7 {
+ menuentry "System Setup" --class UEFI --unrestricted --id=$IDNUMBER {
   fwsetup
  }
+ increment IDNUMBER
 
- menuentry "Restart" --class reboot --unrestricted --id=8 {
+ menuentry "Restart" --class reboot --unrestricted --id=$IDNUMBER {
   reboot
  }
+ increment IDNUMBER
 
- menuentry "Halt" --class poweroff --unrestricted --id=9 {
+ menuentry "Halt" --class poweroff --unrestricted --id=$IDNUMBER {
   halt
  }
+ increment IDNUMBER
 
 }
 
-##menuentry "Windows" --class windows --class useless --users %%WITHUSER%% --id=10 {
+##menuentry "Windows" --class windows --class useless --users %%WITHUSER%% --id=$IDNUMBER {
 ##  insmod part_gpt
 ##  insmod fat
 ##  insmod ntfs
@@ -183,11 +202,21 @@ submenu "Admin Access (restricted)" --class recovery --users superusers --id=3 {
 ##  search --no-floppy --fs-uuid --set=root %%WINROOTID%%
 ##  chainloader /EFI/Microsoft/Boot/bootmgfw.efi
 ##}
+## increment IDNUMBER
 
-menuentry "Restart" --class reboot --unrestricted --id=11 {
+menuentry "Restart" --class reboot --unrestricted --id=$IDNUMBER {
  reboot
 }
+increment IDNUMBER
 
-menuentry "Halt" --class poweroff --unrestricted --id=12 {
+menuentry "Halt" --class poweroff --unrestricted --id=$IDNUMBER {
  halt
 }
+increment IDNUMBER
+
+if test $check_signatures == yes; then
+  menuentry "Disable Signature Checking" --users superusers --id=$IDNUMBER {
+    check_signatures=no
+  }
+fi
+

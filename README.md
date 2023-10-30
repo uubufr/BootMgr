@@ -5,9 +5,10 @@ Warning: Only tested on Fedora 30 to 37!
 
 Features:
 
-- Auto dectect Current and previous Kernel
+- Auto detect Current and previous Kernel
 - Admin menu for rescue access
 - Add restart - stop - System Setup
+- secured entry for disabling signature checking
 - Add user passwords
 - Try to add Windows on Dual Boot System
 - Install theme
