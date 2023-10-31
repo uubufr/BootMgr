@@ -177,9 +177,15 @@ submenu "Admin Access (restricted)" --class recovery --users superusers --id=$ID
   unset KRESCUE
  done
 
-  if [ "$KLAST" ]; then
-  menuentry "Fedora $KLAST (Initramfs shell)" --class default --class %%OS%% --class gnu-linux --unrestricted --id=$IDNUMBER {
-   linuxefi /vmlinuz-$KLAST root=$HDROOT $OPTIONS init=/bin/bash
+ if [ "$KLAST ]; then
+  menuentry "Initramfs Shell" --class fedora --user unrestricted --id=$IDNUMBER {
+   linuxefi /vmlinuz-$KLAST $OPTRESCUE console=tty0 rd.shell
+   initrdefi /initramfs-$KLAST.img
+  }
+  increment IDNUMBER
+
+  menuentry "Init is Bash" --class fedora --user unrestricted --id=$IDNUMBER {
+   linuxefi /vmlinuz-$KLAST root=$HDROOT $OPTRESCUE console=tty0 init=/bin/bash
    initrdefi /initramfs-$KLAST.img
   }
   increment IDNUMBER
