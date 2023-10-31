@@ -177,6 +177,14 @@ submenu "Admin Access (restricted)" --class recovery --users superusers --id=$ID
   unset KRESCUE
  done
 
+  if [ "$KLAST" ]; then
+  menuentry "Fedora $KLAST (Initramfs shell)" --class default --class %%OS%% --class gnu-linux --unrestricted --id=$IDNUMBER {
+   linuxefi /vmlinuz-$KLAST root=$HDROOT $OPTIONS init=/bin/bash
+   initrdefi /initramfs-$KLAST.img
+  }
+  increment IDNUMBER
+ fi
+
  menuentry "System Setup" --class UEFI --unrestricted --id=$IDNUMBER {
   fwsetup
  }
