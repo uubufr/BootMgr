@@ -177,7 +177,7 @@ submenu "Admin Access (restricted)" --class recovery --users superusers --id=$ID
   unset KRESCUE
  done
 
- if [ "$KLAST ]; then
+ if [ "$KLAST" ]; then
   menuentry "Initramfs Shell" --class fedora --user unrestricted --id=$IDNUMBER {
    linuxefi /vmlinuz-$KLAST $OPTRESCUE console=tty0 rd.shell
    initrdefi /initramfs-$KLAST.img
@@ -230,7 +230,7 @@ increment IDNUMBER
 
 if test $check_signatures == enforce; then
   menuentry "Disable Signature Checking" --users superusers --id=$IDNUMBER {
-    check_signatures=no
+    set check_signatures=no
   }
 fi
 

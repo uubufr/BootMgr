@@ -169,11 +169,11 @@ function Gen_Cfg() {
       GRUBROOTSEARCH=$(lsblk -o uuid $GRUBPART | tail -1)
       GRUBROOTSEARCHTYPE="--fs-uuid"
     else
-      GRUBROOTSEARCH=$(lsblk -o label $BOOTMGR_SEARCH_TYPE | tail -1)
+      GRUBROOTSEARCH=$(lsblk -o label $GRUBPART | tail -1)
       GRUBROOTSEARCHTYPE="--label"
     fi
     sed -i -e "s/%%SEARCHROOT%%/$GRUBROOTSEARCH/g" /tmp/grub.cfg.tmp
-    sed -i -e "s/%#SEARCHTYPE/$GRUBROOTSEARCHTYPE/g" /tmp/grub.cfg.tmp
+    sed -i -e "s/%%SEARCHTYPE%%/$GRUBROOTSEARCHTYPE/g" /tmp/grub.cfg.tmp
 
     ### Linux / part ###
     ROOTPART=$(mount -l | grep "/ "); ROOTPART=${ROOTPART%% *}
