@@ -16,7 +16,7 @@ loadfont $prefix/fonts/euro.pf2
 loadfont $prefix/fonts/unicode.pf2
 font=unicode
 
-search --no-floppy --fs-uuid --set=root %%UUIDROOT%%
+search --no-floppy %%SEARCHTYPE%% --set=root %%SEARCHROOT%%
 export root
 
 set locale_dir=$prefix/locale
@@ -228,7 +228,7 @@ menuentry "Halt" --class poweroff --unrestricted --id=$IDNUMBER {
 }
 increment IDNUMBER
 
-if test $check_signatures == yes; then
+if test $check_signatures == enforce; then
   menuentry "Disable Signature Checking" --users superusers --id=$IDNUMBER {
     check_signatures=no
   }
